@@ -53,9 +53,8 @@ export default function Home() {
             <div className="w-full lg:w-auto">
               <XTimeline
                 username="Mogan_Kawakami"
-                width={500}
                 height={600}
-                className="sm:!w-[300px] sm:!h-[800px] lg:!w-[300px] lg:!h-[1000px]"
+                className="w-full sm:!w-[300px] lg:!w-[350px]"
               />
             </div>
           </div>

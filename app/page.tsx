@@ -2,6 +2,13 @@ import ImageScroller from "@/components/animations/ImageScroller";
 import XTimeline from "@/components/XTimeline";
 import ProfileCard from "@/components/ProfileCard";
 
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "同人サークル[Kawakami Lab.]",
+  description: "同人サークル[Kawakami Lab.], およびl, 川上モガんのポートフォリオサイト。最新の同人誌や作品紹介など。",
+};
+
 export default function Home() {
   return (
     <div className="font-sans min-h-screen p-4 pb-12 sm:p-8 sm:pb-20 lg:p-20">

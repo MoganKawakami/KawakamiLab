@@ -54,7 +54,7 @@ export default function Home() {
               <XTimeline
                 username="Mogan_Kawakami"
                 height={600}
-                className="w-full sm:!w-[300px] lg:!w-[350px]"
+                className="w-full max-w-[350px]" // ← 親でレスポンシブ制御
               />
             </div>
           </div>

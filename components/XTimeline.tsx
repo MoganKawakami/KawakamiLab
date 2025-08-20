@@ -4,14 +4,14 @@ import { useEffect, useRef } from "react";
 
 interface XTimelineProps {
   username: string;
-  width?: string | number; // string も許可
+  width?: number; // ← number に限定
   height?: number;
   className?: string;
 }
 
 export default function XTimeline({
   username,
-  width = "100%", // ← デフォルトでレスポンシブ
+  width = 350, // ← デフォルトは350px
   height = 600,
   className = "",
 }: XTimelineProps) {
@@ -40,7 +40,7 @@ export default function XTimeline({
           },
           containerRef.current,
           {
-            width: width.toString(), // ← "100%" も通せる
+            width: width.toString(), // ← number → string
             height,
             theme: "light",
             chrome: "noheader nofooter noborders transparent",

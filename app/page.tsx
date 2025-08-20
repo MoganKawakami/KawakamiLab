@@ -6,7 +6,7 @@ export default function Home() {
   return (
     <div className="font-sans min-h-screen p-4 pb-12 sm:p-8 sm:pb-20 lg:p-20">
       <div className="flex flex-col gap-6 sm:gap-8 lg:gap-[32px] items-center sm:items-start w-full">
-        <ImageScroller className="transform -translate-y-1 sm:-translate-y-16 mx-auto" />
+        <ImageScroller className="transform translate-y-2 sm:-translate-y-4 lg:-translate-y-18 mx-auto" />
 
         {/* ProfileCardとXTimelineを横並び（デスクトップ）または縦並び（モバイル）に配置 */}
         <div

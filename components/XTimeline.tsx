@@ -82,9 +82,10 @@ export default function XTimeline({
     <div className={`my-4 ${className}`}>
       {isMobile ? (
         <iframe
-          src={`https://syndication.twitter.com/srv/timeline-profile/screen-name/${username}?dnt=true&embed_origin=localhost`}
+          src={`https://nitter.net/${username}`}
           width={width}
           height={height}
+          style={{ border: "1px solid #ccc" }}
         />
       ) : (
         <div ref={containerRef}></div>

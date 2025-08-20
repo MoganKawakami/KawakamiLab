@@ -45,17 +45,31 @@ export default function Home() {
             </div>
           </div>
 
-          {/* 右側: XTimeline */}
+          {/* 右側: XTimeline（モバイル対応改善） */}
           <div className="flex-shrink-0 w-full lg:w-auto lg:ml-auto">
             <h3 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4">
               Kawakami Lab X Timeline
             </h3>
+            {/* モバイルとデスクトップで異なる設定 */}
             <div className="w-full lg:w-auto">
-              <XTimeline
-                username="Mogan_Kawakami"
-                height={600}
-                className="w-full max-w-[350px]" // ← 親でレスポンシブ制御
-              />
+              {/* モバイル用（画面幅に応じて調整） */}
+              <div className="block lg:hidden">
+                <XTimeline
+                  username="Mogan_Kawakami"
+                  width={300}
+                  height={500}
+                  className="w-full"
+                />
+              </div>
+              {/* デスクトップ用 */}
+              <div className="hidden lg:block">
+                <XTimeline
+                  username="Mogan_Kawakami"
+                  width={350}
+                  height={600}
+                  className="w-full max-w-[350px]"
+                />
+              </div>
             </div>
           </div>
         </div>

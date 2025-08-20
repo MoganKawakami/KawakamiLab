@@ -6,12 +6,14 @@ interface XTimelineProps {
   username: string; // 表示したいXアカウントのユーザー名
   width?: number | string;
   height?: number | string;
+  className?: string; // ✅ classNameプロパティを追加
 }
 
 export default function XTimeline({
   username,
   width = "400",
-  height = "600",
+  height = "1600", // ✅ デフォルト値を600から800に変更
+  className = "", // ✅ デフォルト値を空文字に設定
 }: XTimelineProps) {
   useEffect(() => {
     // スクリプトがすでに読み込まれていない場合のみ追加
@@ -29,7 +31,7 @@ export default function XTimeline({
   }, []);
 
   return (
-    <div className="my-4">
+    <div className={`my-4 ${className}`}> {/* ✅ classNameを結合 */}
       <a
         className="twitter-timeline"
         data-width={width}

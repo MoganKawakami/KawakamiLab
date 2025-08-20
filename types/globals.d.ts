@@ -1,9 +1,25 @@
 // types/globals.d.ts
-interface Window {
-  twttr?: {
-    widgets: {
-      createTimeline: (options: any, element: HTMLElement) => Promise<any>;
-      load?: (element?: HTMLElement) => void; // 追加
+export {};
+
+declare global {
+  interface Window {
+    twttr?: {
+      widgets: {
+        createTimeline: (
+          options: {
+            sourceType: string;
+            screenName: string;
+          },
+          element: HTMLElement,
+          customization?: {
+            width?: number | string;
+            height?: number | string;
+            theme?: "light" | "dark";
+            chrome?: string;
+          },
+        ) => Promise<HTMLElement>;
+        load?: (element?: HTMLElement) => void;
+      };
     };
-  };
+  }
 }

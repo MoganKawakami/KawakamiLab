@@ -107,8 +107,10 @@ export default function XTimeline({
           /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/.test(
             userAgent,
           ) || window.innerWidth <= 768;
+
+        // 最小幅を 250px に保証
         const actualWidth = isMobile
-          ? Math.min(width, window.innerWidth - 40)
+          ? Math.max(250, Math.min(width, window.innerWidth - 40))
           : width;
 
         window.twttr.widgets
@@ -119,10 +121,10 @@ export default function XTimeline({
             },
             containerRef.current,
             {
-              width: actualWidth,
-              height: height,
+              width: actualWidth.toString(), // ← 文字列に修正
+              height: height.toString(), // ← 文字列に修正
               theme: "light",
-              chrome: "noheader nofooter noborders transparent",
+              chrome: "noheader nofooter noborders", // ← transparent削除
             },
           )
           .then(() => {
@@ -165,7 +167,7 @@ export default function XTimeline({
       if (containerRef.current && window.twttr?.widgets?.createTimeline) {
         const isMobile = window.innerWidth <= 768;
         const actualWidth = isMobile
-          ? Math.min(width, window.innerWidth - 32)
+          ? Math.max(250, Math.min(width, window.innerWidth - 32))
           : width;
 
         containerRef.current.innerHTML = "";
@@ -179,7 +181,7 @@ export default function XTimeline({
             width: actualWidth.toString(),
             height: height.toString(),
             theme: "light",
-            chrome: "noheader nofooter noborders transparent",
+            chrome: "noheader nofooter noborders", // transparent削除
           },
         );
       }

@@ -82,11 +82,11 @@ export default function XTimeline({
     <div className={`my-4 ${className}`}>
       {isMobile ? (
         <iframe
-          src={`https://twitframe.com/show?url=https://twitter.com/${username}`}
-          width={width}
-          height={height}
-          style={{ border: "none", overflow: "hidden" }}
-        />
+  src={`https://twitter.com/${username}?ref_src=twsrc%5Etfw`}
+  width={width}
+  height={height}
+  style={{ border: "none", overflow: "hidden" }}
+/>
       ) : (
         <div ref={containerRef}></div>
       )}

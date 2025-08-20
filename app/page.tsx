@@ -1,5 +1,4 @@
 import ImageScroller from "@/components/animations/ImageScroller";
-import Image from "next/image";
 import XTimeline from "@/components/XTimeline";
 import ProfileCard from "@/components/ProfileCard";
 
@@ -10,12 +9,18 @@ export default function Home() {
         <ImageScroller className="transform -translate-y-3 sm:-translate-y-16 mx-auto" />
 
         {/* ProfileCardとXTimelineを横並び（デスクトップ）または縦並び（モバイル）に配置 */}
-        <div id="about" className="flex flex-col lg:flex-row gap-6 lg:gap-8 self-start p-4 sm:p-6 lg:p-8 items-start w-full lg:justify-between">
+        <div
+          id="about"
+          className="flex flex-col lg:flex-row gap-6 lg:gap-8 self-start p-4 sm:p-6 lg:p-8 items-start w-full lg:justify-between"
+        >
           {/* 左側: 縦書きの「about」（モバイルでは横書きに変更） */}
           <div className="flex items-center justify-center lg:justify-start">
             <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-700 lg:transform lg:rotate-180 lg:block">
               <span className="lg:hidden">About</span>
-              <span className="hidden lg:inline" style={{ writingMode: "vertical-rl" }}>
+              <span
+                className="hidden lg:inline"
+                style={{ writingMode: "vertical-rl" }}
+              >
                 About
               </span>
             </h2>
@@ -34,11 +39,13 @@ export default function Home() {
 
           {/* 右側: XTimeline */}
           <div className="flex-shrink-0 w-full lg:w-auto lg:ml-auto">
-            <h3 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4">Kawakami Lab X Timeline</h3>
+            <h3 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4">
+              Kawakami Lab X Timeline
+            </h3>
             <div className="w-full lg:w-auto">
-              <XTimeline 
-                username="Mogan_Kawakami" 
-                width="100%" 
+              <XTimeline
+                username="Mogan_Kawakami"
+                width="100%"
                 height="600"
                 className="sm:!w-[300px] sm:!h-[800px] lg:!w-[300px] lg:!h-[1000px]"
               />

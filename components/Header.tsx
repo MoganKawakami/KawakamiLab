@@ -9,9 +9,9 @@ export default function Header() {
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
     if (element) {
-      element.scrollIntoView({ 
-        behavior: 'smooth',
-        block: 'start'
+      element.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
       });
     }
     // モバイルメニューを閉じる
@@ -37,8 +37,8 @@ export default function Header() {
         <Link href="/" className="hover:underline">
           Home
         </Link>
-        <button 
-          onClick={() => scrollToSection('about')}
+        <button
+          onClick={() => scrollToSection("about")}
           className="hover:underline cursor-pointer bg-transparent border-none text-white"
         >
           About
@@ -57,37 +57,43 @@ export default function Header() {
         onClick={() => setIsMenuOpen(!isMenuOpen)}
         aria-label="メニューを開く"
       >
-        <span className={`block w-5 h-0.5 bg-white transition-all ${isMenuOpen ? 'rotate-45 translate-y-1.5' : ''}`}></span>
-        <span className={`block w-5 h-0.5 bg-white transition-all ${isMenuOpen ? 'opacity-0' : ''}`}></span>
-        <span className={`block w-5 h-0.5 bg-white transition-all ${isMenuOpen ? '-rotate-45 -translate-y-1.5' : ''}`}></span>
+        <span
+          className={`block w-5 h-0.5 bg-white transition-all ${isMenuOpen ? "rotate-45 translate-y-1.5" : ""}`}
+        ></span>
+        <span
+          className={`block w-5 h-0.5 bg-white transition-all ${isMenuOpen ? "opacity-0" : ""}`}
+        ></span>
+        <span
+          className={`block w-5 h-0.5 bg-white transition-all ${isMenuOpen ? "-rotate-45 -translate-y-1.5" : ""}`}
+        ></span>
       </button>
 
       {/* モバイルメニュー */}
       {isMenuOpen && (
         <div className="md:hidden absolute top-full left-0 right-0 bg-black border-t border-gray-700 z-50">
           <nav className="flex flex-col py-4">
-            <Link 
-              href="/" 
+            <Link
+              href="/"
               className="hover:bg-gray-800 px-4 sm:px-6 py-3 transition-colors"
               onClick={handleLinkClick}
             >
               Home
             </Link>
-            <button 
-              onClick={() => scrollToSection('about')}
+            <button
+              onClick={() => scrollToSection("about")}
               className="hover:bg-gray-800 px-4 sm:px-6 py-3 text-left cursor-pointer bg-transparent border-none text-white transition-colors"
             >
               About
             </button>
-            <Link 
-              href="/gallery" 
+            <Link
+              href="/gallery"
               className="hover:bg-gray-800 px-4 sm:px-6 py-3 transition-colors"
               onClick={handleLinkClick}
             >
               Gallery
             </Link>
-            <Link 
-              href="/news" 
+            <Link
+              href="/news"
               className="hover:bg-gray-800 px-4 sm:px-6 py-3 transition-colors"
               onClick={handleLinkClick}
             >

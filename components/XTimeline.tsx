@@ -31,7 +31,9 @@ export default function XTimeline({
   }, []);
 
   return (
-    <div className={`my-4 ${className}`}> {/* ✅ classNameを結合 */}
+    <div className={`my-4 ${className}`}>
+      {" "}
+      {/* ✅ classNameを結合 */}
       <a
         className="twitter-timeline"
         data-width={width}

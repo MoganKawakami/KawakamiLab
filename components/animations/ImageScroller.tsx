@@ -17,11 +17,11 @@ interface ImageScrollerProps {
 export default function ImageScroller({ className }: ImageScrollerProps) {
   // レスポンシブ対応の画像幅設定
   const mobileImageWidth = 192; // w-48 (12rem = 192px)
-  const tabletImageWidth = 256; // w-64 (16rem = 256px)  
+  const tabletImageWidth = 256; // w-64 (16rem = 256px)
   const desktopImageWidth = 384; // w-96 (24rem = 384px)
-  
+
   const totalImages = images.length * 2;
-  
+
   // 各デバイスサイズでの総幅計算
   const mobileTotalWidth = mobileImageWidth * totalImages;
   const tabletTotalWidth = tabletImageWidth * totalImages;
@@ -66,7 +66,10 @@ export default function ImageScroller({ className }: ImageScrollerProps) {
         }}
       >
         {[...images, ...images].map((src, idx) => (
-          <div key={`tablet-${idx}`} className="relative w-64 h-full flex-shrink-0">
+          <div
+            key={`tablet-${idx}`}
+            className="relative w-64 h-full flex-shrink-0"
+          >
             <Image src={src} alt={`img-${idx}`} fill className="object-cover" />
           </div>
         ))}
@@ -83,7 +86,10 @@ export default function ImageScroller({ className }: ImageScrollerProps) {
         }}
       >
         {[...images, ...images].map((src, idx) => (
-          <div key={`desktop-${idx}`} className="relative w-96 h-full flex-shrink-0">
+          <div
+            key={`desktop-${idx}`}
+            className="relative w-96 h-full flex-shrink-0"
+          >
             <Image src={src} alt={`img-${idx}`} fill className="object-cover" />
           </div>
         ))}

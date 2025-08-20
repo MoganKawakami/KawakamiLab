@@ -31,12 +31,12 @@ export default function Opening() {
     const welcomeTimer = setTimeout(() => {
       setHideWelcome(true);
     }, 1000);
-    
+
     // さらに1秒後に画像のフェードアウトを開始
     const fadeTimer = setTimeout(() => {
       setStartFadeOut(true);
     }, 2000);
-    
+
     return () => {
       clearTimeout(welcomeTimer);
       clearTimeout(fadeTimer);
@@ -55,13 +55,13 @@ export default function Opening() {
       {/* 黒い背景とWelcome!とプログレスバー */}
       <AnimatePresence>
         {!hideWelcome && (
-          <motion.div 
+          <motion.div
             className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black"
             initial={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <motion.h1 
+            <motion.h1
               className="text-4xl font-bold mb-6 text-white"
               initial={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -73,7 +73,9 @@ export default function Opening() {
             {/* プログレスバー */}
             {!showImage && (
               <div className="flex flex-col items-center">
-                <div className="text-2xl font-mono mb-4 text-white">{progress}%</div>
+                <div className="text-2xl font-mono mb-4 text-white">
+                  {progress}%
+                </div>
                 <div className="w-64 h-2 bg-gray-700 rounded-full overflow-hidden">
                   <motion.div
                     className="h-full bg-white"

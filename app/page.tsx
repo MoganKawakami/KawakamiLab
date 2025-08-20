@@ -6,7 +6,8 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "同人サークル[Kawakami Lab.]",
-  description: "同人サークル[Kawakami Lab.], およびl, 川上モガんのポートフォリオサイト。最新の同人誌や作品紹介など。",
+  description:
+    "同人サークル[Kawakami Lab.], およびl, 川上モガんのポートフォリオサイト。最新の同人誌や作品紹介など。",
 };
 
 export default function Home() {

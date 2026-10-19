@@ -41,6 +41,19 @@ export function ShapeRing({ size = 100 }: { size?: number }) {
   );
 }
 
+export function ShapeNodes({ size = 130 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 130 130" fill="none">
+      <path d="M20 20L65 50L110 24M65 50V110M65 50L30 96" stroke="var(--c-deep)" strokeWidth="1.2" opacity=".55" />
+      <circle cx="20" cy="20" r="4" fill="var(--c-primary)" />
+      <circle cx="110" cy="24" r="4" fill="var(--c-secondary)" />
+      <circle cx="65" cy="50" r="5.5" fill="none" stroke="var(--c-deep)" strokeWidth="1.6" />
+      <circle cx="65" cy="110" r="4" fill="var(--c-secondary)" />
+      <circle cx="30" cy="96" r="3.2" fill="var(--c-primary)" />
+    </svg>
+  );
+}
+
 export function ShapePlus({ size = 60 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 60 60" fill="none">

@@ -1,3 +1,5 @@
+import "./styles/desktop.css";
+import "./styles/mobile.css";
 import "./globals.css";
 import type { Metadata, Viewport } from "next";
 

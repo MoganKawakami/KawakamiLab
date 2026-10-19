@@ -1,5 +1,5 @@
-import MApp from "@/components/lab/MApp";
+import Site from "@/components/Site";
 
 export default function Home() {
-  return <MApp />;
+  return <Site />;
 }

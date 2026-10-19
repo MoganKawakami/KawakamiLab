@@ -145,3 +145,4 @@ export const PAST_EVENTS: PastEvent[] = [
   { id: "comitia150", name: "COMITIA 150", iso: "2025-11-24", venueJp: "東京ビッグサイト 西ホール", booth: "す-19a",
     note: "『試作零号 / PROTOTYPE 0』初頒布。たくさんの方に手に取っていただきました。" },
 ];
+

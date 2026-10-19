@@ -90,7 +90,7 @@ export default function PcApp() {
       else if (e.key === "ArrowLeft") nav(-1);
     };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    return () => { window.removeEventListener("keydown", onKey); document.body.classList.remove("locked"); };
   }, [openIndex, close, nav]);
 
   return (

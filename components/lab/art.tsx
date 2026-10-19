@@ -1,5 +1,5 @@
 /* art.tsx — KAWAKAMI Lab. mark, decorative shapes and placeholder artwork */
-import { useId } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import type { Publication } from "@/lib/data";
 
 /* The circuit-"K": a vertical spine, two diagonal traces branching from a
@@ -102,6 +102,77 @@ export function Placeholder({
       </div>
     </div>
   );
+}
+
+/* A photo filling its frame with the focus point — a character's face — at the centre.
+   focus is [x, y] as fractions of the image (0–1). The image covers the frame like
+   object-fit: cover; when the face sits too close to an edge to reach the centre that
+   way, it zooms in up to maxZoom (1 = never zoom, e.g. book covers stay whole). */
+export function FocusImg({ src, alt, focus, maxZoom = 1 }: {
+  src: string; alt: string; focus: [number, number]; maxZoom?: number;
+}) {
+  const ref = useRef<HTMLImageElement>(null);
+  const [box, setBox] = useState<React.CSSProperties | null>(null);
+  const [fx, fy] = focus;
+
+  useEffect(() => {
+    const img = ref.current, frame = img?.parentElement;
+    if (!img || !frame) return;
+    const place = () => {
+      const bw = frame.clientWidth, bh = frame.clientHeight, nw = img.naturalWidth, nh = img.naturalHeight;
+      if (!bw || !bh || !nw || !nh) return;
+      const cover = Math.max(bw / nw, bh / nh);
+      /* zoom needed so the face can sit mid-frame on both axes */
+      const need = (frameLen: number, len: number, f: number) => frameLen / (2 * Math.max(0.01, Math.min(f, 1 - f)) * len);
+      const zoom = Math.min(maxZoom, Math.max(1, need(bw, nw * cover, fx), need(bh, nh * cover, fy)));
+      const w = nw * cover * zoom, h = nh * cover * zoom;
+      const at = (frameLen: number, len: number, f: number) => Math.min(0, Math.max(frameLen - len, frameLen / 2 - f * len));
+      setBox({ left: at(bw, w, fx), top: at(bh, h, fy), width: w, height: h });
+    };
+    place();
+    img.addEventListener("load", place);
+    const ro = new ResizeObserver(place);
+    ro.observe(frame);
+    return () => { img.removeEventListener("load", place); ro.disconnect(); };
+  }, [fx, fy, maxZoom]);
+
+  /* before measuring (and on the server) fall back to a plain cover crop toward the face */
+  const style: React.CSSProperties = box
+    ? { position: "absolute", maxWidth: "none", ...box }
+    : { position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: `${fx * 100}% ${fy * 100}%` };
+  return (
+    // eslint-disable-next-line @next/next/no-img-element -- images are pre-sized in public/images
+    <img ref={ref} src={src} alt={alt} loading="lazy" decoding="async" draggable={false} style={style} />
+  );
+}
+
+/* Same frame as Placeholder (class "ph", aspect from ratio) but holding a photo */
+export function Photo({ ratio = 1.4, src, alt, focus = [0.5, 0.5], maxZoom }: {
+  ratio?: number; src: string; alt: string; focus?: [number, number]; maxZoom?: number;
+}) {
+  return (
+    <div className="ph" style={{ position: "relative", width: "100%", aspectRatio: String(1 / ratio), overflow: "hidden", background: "var(--c-line-soft)" }}>
+      <FocusImg src={src} alt={alt} focus={focus} maxZoom={maxZoom} />
+    </div>
+  );
+}
+
+/* A whole page, never cropped (letterboxed if its shape differs from the frame) */
+export function PageImg({ ratio = 1.414, src, alt }: { ratio?: number; src: string; alt: string }) {
+  return (
+    <div className="ph" style={{ position: "relative", width: "100%", aspectRatio: String(1 / ratio), background: "#fff" }}>
+      {/* eslint-disable-next-line @next/next/no-img-element -- images are pre-sized in public/images */}
+      <img src={src} alt={alt} loading="lazy" decoding="async" draggable={false}
+        style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "contain" }} />
+    </div>
+  );
+}
+
+/* Cover for a publication: its artwork when there is one, otherwise the placeholder */
+export function Cover({ p, ratio, big }: { p: Publication; ratio: number; big?: boolean }) {
+  return p.image
+    ? <Photo ratio={ratio} src={p.image.src} alt={p.title} focus={p.image.focus} />
+    : <Placeholder ratio={ratio} {...coverProps(p)} big={big} />;
 }
 
 /* Cover props for a publication: unannounced ones show "Coming soon..." with no hint */

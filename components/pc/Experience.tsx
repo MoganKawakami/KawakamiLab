@@ -1,12 +1,16 @@
+import { useDialogFocus } from "@/lib/use-dialog-focus";
 /* Experience.tsx — PC full-screen publication exhibition */
 import type { Publication } from "@/lib/data";
-import { ChevronLeft, ChevronRight, Logo, Placeholder, coverProps } from "../lab/art";
+import { ChevronLeft, ChevronRight, Cover, Logo } from "../lab/art";
+import { PreviewThumbs } from "../lab/PageViewer";
 
 export function Experience({ pub, index, total, onClose, onNav }: {
   pub: Publication; index: number; total: number; onClose: () => void; onNav: (dir: number) => void;
 }) {
+  const dialog = useDialogFocus();
+
   return (
-    <div className="exp exp-enter" role="dialog" aria-modal="true">
+    <div className="exp exp-enter" ref={dialog} tabIndex={-1} role="dialog" aria-modal="true" aria-label={pub.title}>
       {/* ambient scrim */}
       <div className="exp__scrim" aria-hidden="true">
         <div className="blob b1" /><div className="blob b2" /><div className="blob b3" />
@@ -31,7 +35,7 @@ export function Experience({ pub, index, total, onClose, onNav }: {
         {/* keyed by publication so the swap animation replays */}
         <div className="exp__inner" key={pub.id}>
           <div className="exp__cover swap">
-            <Placeholder ratio={pub.ratio} {...coverProps(pub)} big />
+            <Cover p={pub} ratio={pub.ratio} big />
           </div>
 
           <div className="exp__detail swap">
@@ -52,7 +56,7 @@ export function Experience({ pub, index, total, onClose, onNav }: {
             <div className="previews">
               <span className="lab-tag">Preview Plates — 試し読み</span>
               <div className="previews__grid">
-                {pub.previews.map((p, i) => <div className="thumb" key={i}><Placeholder ratio={1.3} label={p} hint={!pub.secret} from={pub.from} to={pub.to} /></div>)}
+                <PreviewThumbs pub={pub} />
               </div>
             </div>
           </div>

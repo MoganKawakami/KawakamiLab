@@ -1,4 +1,5 @@
 import "../../fortune.css";
+import "../../../styles/crystal.css";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { SharedFortune } from "@/components/fortune/Fortune";

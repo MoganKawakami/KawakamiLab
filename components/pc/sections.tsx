@@ -1,7 +1,8 @@
 /* sections.tsx — PC layout: Nav, Hero, Marquee, About, Publications, Events, Footer */
 import { useRef, useState } from "react";
-import { PAST_EVENTS, PROFILE_FACETS, PUBLICATIONS, SOCIAL, STATS as COUNTS, type Fav } from "@/lib/data";
-import { ChevronLeft, ChevronRight, Logo, Placeholder, ShapeNodes, ShapePlus, ShapeRing, coverProps, swipeHandlers } from "../lab/art";
+import { ICON, PAST_EVENTS, PROFILE_FACETS, PUBLICATIONS, SOCIAL, STATS as COUNTS, type Fav } from "@/lib/data";
+import { ChevronLeft, ChevronRight, Cover, FocusImg, Logo, Photo, Placeholder, ShapeNodes, ShapePlus, ShapeRing, swipeHandlers } from "../lab/art";
+import { FortuneEntry } from "../lab/Crystal";
 import { daysUntil } from "../lab/sections";
 
 type Jump = (id: string) => void;
@@ -64,11 +65,7 @@ export function Hero({ onJump }: { onJump: Jump }) {
           </h1>
           <p className="hero__jp reveal in d2">推しを信じて描く。</p>
           <p className="hero__en reveal in d3">Drawing what we love, with conviction — a circle devoted to illustrating our favorite characters.</p>
-          <a className="fortune-entry reveal in d3" href="/fortune">
-            <span className="orb" aria-hidden="true"><i /></span>
-            <span className="txt"><span className="k">LAB. FORTUNE · 占い</span><b>今日の運勢を占う</b><small>運勢 / 育成ウマ娘を占えます</small></span>
-            <span className="go" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg></span>
-          </a>
+          <FortuneEntry className="reveal in d3" />
           <div className="hero__actions reveal in d4">
             <button className="btn btn--primary" onClick={() => onJump("publications")}>
               Explore Publications <span className="arrow">→</span>
@@ -105,7 +102,7 @@ function SpecimenCard() {
           <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: ".2em", color: "var(--c-deep)" }}>2026</span>
         </div>
         <div style={{ borderRadius: 14, overflow: "hidden" }}>
-          <Placeholder ratio={1.3} label="ちょ、タキオンさん！因子研究してください！ vol.2" from="#7dd3fc" to="#0ea5e9" big />
+          <Cover p={PUBLICATIONS[2]} ratio={1.3} big />
         </div>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 6px 4px" }}>
           <span style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 15 }}>イラスト集&amp;短編集</span>
@@ -130,7 +127,7 @@ export function Marquee() {
 
 /* ---------------- PROFILE (circle owner, swipeable deck) ---------------- */
 
-/* Favourites: pages of three with arrows and dots; swipes here don't flip the deck */
+/* Favourites: pages of three, switched by swipe/drag; dots indicate the current page. */
 function FavSlider({ favs }: { favs: Fav[] }) {
   const per = 3, pages = Math.ceil(favs.length / per);
   const [pg, setPg] = useState(0);
@@ -152,16 +149,14 @@ function FavSlider({ favs }: { favs: Fav[] }) {
         <div className="pf-favtrack" style={{ transform: `translateX(-${pg * 100}%)` }}>
           {favs.map((v) => (
             <div className="pf-fav" key={v.code}>
-              <div className="pf-fav-art"><Placeholder ratio={1} label={v.code} from={v.from} to={v.to} /></div>
+              <div className="pf-fav-art">{v.img ? <Photo ratio={1} src={v.img} alt={v.name} /> : <Placeholder ratio={1} label={v.code} from={v.from} to={v.to} />}</div>
               <div className="cap">{v.name}<small>{v.code}</small></div>
             </div>
           ))}
         </div>
       </div>
       <div className="pf-favnav pf-favnav--top">
-        <button aria-label="前の推し" disabled={pg === 0} onClick={() => go(pg - 1)}><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M15 5l-7 7 7 7" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg></button>
-        <span className="pf-favdots">{Array.from({ length: pages }).map((_, i) => <i key={i} className={i === pg ? "on" : ""} onClick={() => go(i)} />)}</span>
-        <button aria-label="次の推し" disabled={pg === pages - 1} onClick={() => go(pg + 1)}><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg></button>
+        <span className="pf-favdots" aria-hidden="true">{Array.from({ length: pages }).map((_, i) => <i key={i} className={i === pg ? "on" : ""} />)}</span>
       </div>
     </div>
   );
@@ -188,9 +183,8 @@ function Profile() {
         <span className="idtag r">サークル主 / FOUNDER</span>
         <div className="prof__avatar-wrap">
           <span className="ring" />
-          <div className="prof__avatar">
-            <span className="lbl">ICON</span>
-            <span className="sub">drop your icon</span>
+          <div className="prof__avatar has-img">
+            <FocusImg src={ICON} alt="川上モガん" focus={[0.5, 0.5]} />
           </div>
         </div>
         <div className="prof__name">川上モガん</div>
@@ -299,9 +293,10 @@ export function Publications({ onOpen }: { onOpen: (i: number) => void }) {
 
         <div className="masonry">
           {PUBLICATIONS.map((p, i) => (
-            <article className={"pub reveal d" + ((i % 4) + 1)} key={p.id} onClick={() => onOpen(i)}>
+            <article className={"pub reveal d" + ((i % 4) + 1)} key={p.id} role="button" tabIndex={0} aria-label={`${p.title}の詳細を開く`}
+              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onOpen(i); } }} onClick={() => onOpen(i)}>
               <div className="pub__cover">
-                <div className="art"><Placeholder ratio={p.ratio} {...coverProps(p)} /></div>
+                <div className="art"><Cover p={p} ratio={p.ratio} /></div>
                 <div className="shine" />
                 <span className="yr">{p.year}</span>
                 <span className="open">
@@ -387,7 +382,9 @@ export function Events() {
             </div>
 
             <div className="ev__img" key={"i" + ev.id}>
-              <Placeholder ratio={1} label="EVENT IMAGE" sub={ev.name} from="#7dd3fc" to="#2563EB" />
+              {ev.photo
+                ? <Photo ratio={1} src={ev.photo} alt={ev.name} />
+                : <Placeholder ratio={1} label="EVENT IMAGE" sub={ev.name} from="#7dd3fc" to="#2563EB" />}
             </div>
           </div>
 
@@ -429,9 +426,9 @@ export function Footer({ onJump }: { onJump: Jump }) {
           Let&apos;s make imagination<br />visible together.
           <span className="jp">コラボレーション・寄稿・お問い合わせはお気軽に。</span>
         </h2>
-        <button className="btn btn--primary reveal d1" onClick={() => onJump("top")} style={{ background: "var(--grad-sky)" }}>
+        <a className="btn btn--primary reveal d1" href={SOCIAL.x} target="_blank" rel="noopener noreferrer" style={{ background: "var(--grad-sky)" }}>
           Get in touch <span className="arrow">→</span>
-        </button>
+        </a>
 
         <div className="footer__grid">
           <div>
@@ -459,7 +456,7 @@ export function Footer({ onJump }: { onJump: Jump }) {
 
         <div className="footer__bottom">
           <span>© 2026 KAWAKAMI Lab. — All artwork reserved.</span>
-          <span>想像が、視覚芸術になる場所。</span>
+          <span>推しを描く。可愛く描く。ただそれだけ。</span>
         </div>
       </div>
     </footer>

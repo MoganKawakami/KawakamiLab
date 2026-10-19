@@ -2,3 +2,47 @@
    Until the client picks one, both trees are rendered and the other is hidden here. */
 @media (max-width: 760px) { .only-pc { display: none; } }
 @media (min-width: 761px) { .only-mobile { display: none; } }
+
+/* a real photo in the profile avatar: drop the placeholder's stripe overlay */
+.mprof__avatar.has-img::after, .prof__avatar.has-img::after { display: none; }
+
+/* ---------- 試し読み page viewer (PC + phone) — above the publication viewer (z 300) ---------- */
+.pv { position: fixed; inset: 0; z-index: 400; display: flex; flex-direction: column;
+  background: color-mix(in oklab, var(--c-ink) 88%, transparent); backdrop-filter: blur(10px);
+  animation: pvIn calc(.3s / var(--motion)) ease; touch-action: pan-y; }
+@keyframes pvIn { from { opacity: 0; } to { opacity: 1; } }
+.pv__bar { flex: none; display: flex; align-items: center; justify-content: space-between;
+  padding: max(14px, env(safe-area-inset-top)) var(--gutter, 20px) 10px; }
+.pv__count { font-family: var(--font-mono); font-size: 11px; letter-spacing: .2em; color: rgba(255,255,255,.8); }
+.pv__btn { width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--c-line); background: var(--c-white);
+  color: var(--c-ink); display: grid; place-items: center; padding: 0; cursor: pointer;
+  transition: transform .3s ease, border-color .3s, color .3s, opacity .3s; }
+.pv__btn:hover:not(:disabled) { border-color: var(--c-primary); color: var(--c-deep); }
+.pv__btn:active:not(:disabled) { transform: scale(.94); }
+.pv__btn:disabled { opacity: .3; cursor: default; }
+/* the page is centred in the stage and capped to it on both axes */
+.pv__stage { position: relative; flex: 1; min-height: 0; }
+.pv__img { position: absolute; inset: 4px var(--gutter, 20px); margin: auto; max-width: calc(100% - 2 * var(--gutter, 20px)); max-height: calc(100% - 8px);
+  width: auto; height: auto; border-radius: 6px;
+  background: #fff; box-shadow: 0 30px 80px -30px rgba(0,0,0,.7); user-select: none; -webkit-user-drag: none;
+  animation: pvFade calc(.35s / var(--motion)) cubic-bezier(.16,.84,.34,1); }
+.pv__img.from-next { animation-name: pvFromNext; }
+.pv__img.from-prev { animation-name: pvFromPrev; }
+@keyframes pvFade { from { opacity: 0; transform: scale(.97); } to { opacity: 1; transform: none; } }
+@keyframes pvFromNext { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: none; } }
+@keyframes pvFromPrev { from { opacity: 0; transform: translateX(-40px); } to { opacity: 1; transform: none; } }
+.pv__nav { flex: none; display: flex; align-items: center; justify-content: center; gap: 18px;
+  padding: 12px var(--gutter, 20px) max(18px, env(safe-area-inset-bottom)); }
+.pv__dots { display: flex; gap: 6px; }
+.pv__dots i { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,.35); cursor: pointer;
+  transition: width .3s, background .3s; }
+.pv__dots i.on { width: 20px; border-radius: 5px; background: var(--grad-tri); }
+
+/* PC: arrows sit at the sides of the page, vertically centred */
+@media (min-width: 761px) {
+  .pv__img { inset: 4px 96px; max-width: calc(100% - 192px); }
+  .pv__arrow { position: fixed; top: 50%; transform: translateY(-50%); width: 52px; height: 52px; }
+  .pv__arrow:active:not(:disabled) { transform: translateY(-50%) scale(.94); }
+  .pv__arrow--prev { left: 28px; }
+  .pv__arrow--next { right: 28px; }
+}

@@ -22,7 +22,13 @@ export type Publication = {
   desc: string;
   descJp: string;
   previews: string[];
+  /* cover artwork in public/, with the face position as fractions of the image */
+  image?: Img;
+  /* 試し読み pages, in the same order as previews: a small thumbnail and a readable full page */
+  pages?: { thumb: string; full: string }[];
 };
+
+export type Img = { src: string; focus: [number, number] };
 
 const Q = "????";
 
@@ -45,6 +51,8 @@ export const PUBLICATIONS: Publication[] = [
     descJp: "ジャングルポケットの走りを見て現役復帰を決めたアグネスタキオン。しかし、ブランクが簡単に戻るはずもなく、あの時の走りを取り戻せずに苦しみ、走る意味を見出せずにいる。そこにフジキセキが現れて───。",
     desc: "Inspired by Jungle Pocket's running, Agnes Tachyon decides to return to racing. But a long break doesn't simply go away. Unable to recapture the stride she once had, she struggles and can no longer find a reason to run. Then Fuji Kiseki appears...",
     previews: ["PAGE 01", "PAGE 02", "PAGE 03"],
+    image: { src: "/images/covers/c106.jpg", focus: [0.48, 0.5] },
+    pages: [{ thumb: "/images/pages/c106-1-thumb.jpg", full: "/images/pages/c106-1.jpg" }, { thumb: "/images/pages/c106-2-thumb.jpg", full: "/images/pages/c106-2.jpg" }, { thumb: "/images/pages/c106-3-thumb.jpg", full: "/images/pages/c106-3.jpg" }],
   },
   {
     id: "tachyon1", title: "ちょ、タキオンさん！因子研究してください！ vol.1", jp: "", year: "2025", ratio: 1.3,
@@ -55,6 +63,8 @@ export const PUBLICATIONS: Publication[] = [
     descJp: "KAWAKAMI Lab. 初のアグネスタキオンが主役のイラスト集！",
     desc: "KAWAKAMI Lab.'s first illustration collection starring Agnes Tachyon!",
     previews: ["PLATE 01", "PLATE 02", "PLATE 03"],
+    image: { src: "/images/covers/c107.jpg", focus: [0.56, 0.4] },
+    pages: [{ thumb: "/images/pages/c107-1-thumb.jpg", full: "/images/pages/c107-1.jpg" }, { thumb: "/images/pages/c107-2-thumb.jpg", full: "/images/pages/c107-2.jpg" }, { thumb: "/images/pages/c107-3-thumb.jpg", full: "/images/pages/c107-3.jpg" }],
   },
   {
     id: "tachyon2", title: "ちょ、タキオンさん！因子研究してください！ vol.2", jp: "", year: "2026", ratio: 1.42,
@@ -64,7 +74,9 @@ export const PUBLICATIONS: Publication[] = [
     descLabel: "内容 / Contents",
     descJp: "アグネスタキオン主役イラスト集の第２弾！今回のテーマは水着！スピードシンボリ、フェノーメノ、フォーエバーヤングも登場！",
     desc: "The second illustration collection starring Agnes Tachyon! This time the theme is swimsuits! Speed Symboli, Fenomeno, and Forever Young also appear!",
-    previews: ["PLATE 01", "PLATE 02", "PLATE 03"],
+    previews: ["PLATE 01", "PLATE 02"],
+    image: { src: "/images/covers/c108.jpg", focus: [0.35, 0.41] },
+    pages: [{ thumb: "/images/pages/c108-1-thumb.jpg", full: "/images/pages/c108-1.jpg" }, { thumb: "/images/pages/c108-2-thumb.jpg", full: "/images/pages/c108-2.jpg" }],
   },
   secret("secret1", 1.45, "#67e8f9", "#2563EB"),
   secret("secret2", 1.28, "#38BDF8", "#1e40af"),
@@ -84,7 +96,8 @@ export const SOCIAL = {
   pixiv: "https://www.pixiv.net/users/110552199",
 };
 
-export type Fav = { name: string; code: string; from: string; to: string };
+/* img: square crop already centred on the face */
+export type Fav = { name: string; code: string; from: string; to: string; img?: string };
 
 export type Facet = {
   key: string;
@@ -106,12 +119,13 @@ export const PROFILE_FACETS: Facet[] = [
   { key: "hobbies", label: "Hobbies", jp: "趣味",
     chips: ["お絵描き", "デジタル作画", "ゲーム", "映画鑑賞", "アニメ鑑賞", "美術館めぐり"] },
   { key: "oshi", label: "Favorites", jp: "推しキャラ", favs: [
-    { name: "アグネスタキオン", code: "OSHI 01", from: "#5fc8ff", to: "#2563EB" },
-    { name: "フジキセキ", code: "OSHI 02", from: "#3bd6e6", to: "#1f7fe0" },
-    { name: "カツラギエース", code: "OSHI 03", from: "#7dd3fc", to: "#0ea5e9" },
-    { name: "フォーエバーヤング", code: "OSHI 04", from: "#67e8f9", to: "#2563EB" },
-    { name: "エアシャカール", code: "OSHI 05", from: "#38BDF8", to: "#1e40af" },
-    { name: "シュヴァルグラン", code: "OSHI 06", from: "#a5f3fc", to: "#0284c7" },
+    { name: "アグネスタキオン", code: "OSHI 01", from: "#5fc8ff", to: "#2563EB", img: "/images/oshi/agnes-tachyon.jpg" },
+    { name: "フジキセキ", code: "OSHI 02", from: "#3bd6e6", to: "#1f7fe0", img: "/images/oshi/fuji-kiseki.jpg" },
+    { name: "カツラギエース", code: "OSHI 03", from: "#7dd3fc", to: "#0ea5e9", img: "/images/oshi/katsuragi-ace.jpg" },
+    { name: "フォーエバーヤング", code: "OSHI 04", from: "#67e8f9", to: "#2563EB", img: "/images/oshi/forever-young.jpg" },
+    { name: "エアシャカール", code: "OSHI 05", from: "#38BDF8", to: "#1e40af", img: "/images/oshi/air-shakur.jpg" },
+    { name: "シュヴァルグラン", code: "OSHI 06", from: "#a5f3fc", to: "#0284c7", img: "/images/oshi/cheval-grand.jpg" },
+    { name: "フェノーメノ", code: "OSHI 07", from: "#818cf8", to: "#1e40af", img: "/images/oshi/fenomeno.jpg" },
   ], quote: "推し最高" },
   { key: "setup", label: "Studio", jp: "制作環境", rows: [
     { dt: "Hardware", dd: "iPad Pro", jp: true },
@@ -130,19 +144,23 @@ export type PastEvent = {
   booth?: string;
   note?: string;
   role?: string;
+  photo?: string;
 };
 
 /* oldest first — the last entry is the latest */
 export const PAST_EVENTS: PastEvent[] = [
   { id: "cm106", name: "Comic Market 106", jp: "コミックマーケット106", iso: "2025-08-16", venueJp: "東京ビッグサイト", booth: "東7 か-18b",
-    note: "新刊『Future & Past』" },
+    note: "新刊『Future & Past』", photo: "/images/events/cm106.jpg" },
   { id: "cm107", name: "Comic Market 107", jp: "コミックマーケット107", iso: "2025-12-30", venueJp: "東京ビッグサイト", booth: "東7 K-18b",
-    note: "新刊『ちょ、タキオンさん！因子研究してください！ vol.1』" },
-  { id: "urc03", name: "URC03", jp: "", iso: "2026-06-28", venueJp: "東京流通センター(TRC) 第一展示場全ホール", booth: "7枠38番" },
+    note: "新刊『ちょ、タキオンさん！因子研究してください！ vol.1』", photo: "/images/events/cm107.jpg" },
+  { id: "urc03", name: "URC03", jp: "", iso: "2026-06-28", venueJp: "東京流通センター(TRC) 第一展示場全ホール", booth: "7枠38番",
+    photo: "/images/events/urc03.jpg" },
   { id: "cm108", name: "Comic Market 108", jp: "コミックマーケット108", iso: "2026-08-15", venueJp: "東京ビッグサイト", booth: "東3 フ-07b",
-    note: "新刊『ちょ、タキオンさん！因子研究してください！ vol.2』" },
+    note: "新刊『ちょ、タキオンさん！因子研究してください！ vol.2』", photo: "/images/events/cm108.jpg" },
   { id: "spark21", name: "COMIC CITY SPARK 21", jp: "", iso: "2026-10-11", venueJp: "東京ビッグサイト",
-    role: "売り子（お手伝い）として参加しました。" },
+    role: "売り子（お手伝い）として参加しました。", photo: "/images/events/spark21.jpg" },
 ];
+
+export const ICON = "/images/icon.jpg";
 
 export const STATS = { publications: "3", established: "2025", events: "4" };

@@ -1,7 +1,8 @@
 /* sections.tsx — phone-optimized sections */
 import { useEffect, useRef, useState } from "react";
-import { LINKS, PAST_EVENTS, PROFILE_FACETS, PUBLICATIONS, SOCIAL, STATS, type Fav } from "@/lib/data";
-import { ChevronLeft, ChevronRight, Logo, Placeholder, ShapePlus, ShapeRing, coverProps, swipeHandlers } from "./art";
+import { ICON, LINKS, PAST_EVENTS, PROFILE_FACETS, PUBLICATIONS, SOCIAL, STATS, type Fav } from "@/lib/data";
+import { ChevronLeft, ChevronRight, Cover, FocusImg, Logo, Photo, Placeholder, ShapePlus, ShapeRing, swipeHandlers } from "./art";
+import { FortuneEntry } from "./Crystal";
 
 type Jump = (id: string) => void;
 
@@ -40,7 +41,7 @@ export function MNav({ open, setOpen, onJump }: { open: boolean; setOpen: (fn: (
           Browse Works <span className="arrow">→</span>
         </button>
         <div className="mmenu__foot">
-          <span>想像が、視覚芸術になる場所。</span>
+          <span>推しを描く。可愛く描く。ただそれだけ。</span>
           <span>© 2026</span>
         </div>
       </div>
@@ -64,15 +65,11 @@ export function MHero({ onJump }: { onJump: Jump }) {
         <h1 className="reveal in d1">KAWAKAMI<br />Lab<span className="dot">.</span></h1>
         <p className="mhero__jp reveal in d2">推しを信じて描く。</p>
         <p className="mhero__en reveal in d3">Drawing what we love, with conviction — a circle devoted to illustrating our favorite characters.</p>
-        <a className="mfortune-entry reveal in d3" href="/fortune">
-          <span className="orb" aria-hidden="true"><i /></span>
-          <span className="txt"><span className="k">LAB. FORTUNE · 占い</span><b>今日の運勢を占う</b><small>運勢 / 育成ウマ娘を占えます</small></span>
-          <span className="go" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg></span>
-        </a>
+        <FortuneEntry className="reveal in d3" />
 
         <div className="mhero__card reveal in d3">
           <div className="cap"><span className="t">FIG.01 — FEATURED</span><span className="t r">2026</span></div>
-          <div className="art"><Placeholder ratio={1.25} label="ちょ、タキオンさん！因子研究してください！ vol.2" from="#7dd3fc" to="#0ea5e9" big /></div>
+          <div className="art"><Cover p={PUBLICATIONS[2]} ratio={1.25} big /></div>
           <div className="cap"><span className="t" style={{ color: "var(--c-ink)", fontFamily: "var(--font-display)", fontSize: 13, letterSpacing: 0 }}>イラスト集&amp;短編集</span><span className="t">B5 · 16P</span></div>
         </div>
 
@@ -118,7 +115,7 @@ function MFavSlider({ favs }: { favs: Fav[] }) {
       <div className="pf-favwin" ref={win} onScroll={onScroll}>
         {favs.map((v) => (
           <div className="pf-fav" key={v.code}>
-            <div className="pf-fav-art"><Placeholder ratio={1} label={v.code} from={v.from} to={v.to} /></div>
+            <div className="pf-fav-art">{v.img ? <Photo ratio={1} src={v.img} alt={v.name} /> : <Placeholder ratio={1} label={v.code} from={v.from} to={v.to} />}</div>
             <div className="cap">{v.name}<small>{v.code}</small></div>
           </div>
         ))}
@@ -151,7 +148,7 @@ function MProfile() {
         <span className="idtag r">サークル主 / FOUNDER</span>
         <div className="mprof__avatar-wrap">
           <span className="ring" />
-          <div className="mprof__avatar"><span className="lbl">ICON</span><span className="sub">drop your icon</span></div>
+          <div className="mprof__avatar has-img"><FocusImg src={ICON} alt="川上モガん" focus={[0.5, 0.5]} /></div>
         </div>
         <div className="mprof__name">川上モガん</div>
         <div className="mprof__handle">@kawakami_lab</div>
@@ -249,9 +246,10 @@ export function MPublications({ onOpen }: { onOpen: (i: number) => void }) {
         </div>
         <div className="mpubs__list">
           {PUBLICATIONS.map((p, i) => (
-            <article className={"mpub reveal d" + (i % 3 + 1)} key={p.id} onClick={() => onOpen(i)}>
+            <article className={"mpub reveal d" + (i % 3 + 1)} key={p.id} role="button" tabIndex={0} aria-label={`${p.title}の詳細を開く`}
+              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onOpen(i); } }} onClick={() => onOpen(i)}>
               <div className="mpub__cover">
-                <Placeholder ratio={1.2} {...coverProps(p)} />
+                <Cover p={p} ratio={1.2} />
                 <span className="yr">{p.year}</span>
                 <span className="open"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M7 17L17 7M9 7h8v8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg></span>
               </div>
@@ -346,7 +344,9 @@ export function MEvents() {
               ))}
             </div>
             <div className="mev__img" key={"i" + ev.id}>
-              <Placeholder ratio={1.5} label="EVENT IMAGE" sub={ev.name} from="#7dd3fc" to="#2563EB" />
+              {ev.photo
+                ? <Photo ratio={1.5} src={ev.photo} alt={ev.name} />
+                : <Placeholder ratio={1.5} label="EVENT IMAGE" sub={ev.name} from="#7dd3fc" to="#2563EB" />}
             </div>
           </div>
 
@@ -369,9 +369,9 @@ export function MFooter({ onJump }: { onJump: Jump }) {
         <h2 className="mfooter__cta reveal">Let&apos;s make imagination visible together.
           <span className="jp">コラボレーション・寄稿・お問い合わせはお気軽に。</span>
         </h2>
-        <button className="btn btn--primary reveal d1" onClick={() => onJump("top")} style={{ background: "var(--grad-sky)" }}>
+        <a className="btn btn--primary reveal d1" href={SOCIAL.x} target="_blank" rel="noopener noreferrer" style={{ background: "var(--grad-sky)" }}>
           Get in touch <span className="arrow">→</span>
-        </button>
+        </a>
         <div className="mfooter__grid">
           <div className="mfooter__col">
             <div className="brandline"><Logo size={28} mono /><b>KAWAKAMI Lab.</b></div>
@@ -392,7 +392,7 @@ export function MFooter({ onJump }: { onJump: Jump }) {
         </div>
         <div className="mfooter__bottom">
           <span>© 2026 KAWAKAMI Lab. — All artwork reserved.</span>
-          <span>想像が、視覚芸術になる場所。</span>
+          <span>推しを描く。可愛く描く。ただそれだけ。</span>
         </div>
       </div>
     </footer>

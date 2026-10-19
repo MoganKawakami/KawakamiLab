@@ -9,7 +9,11 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "data:generate": "node scripts/fortune-csv.mjs",
+    "data:check": "node scripts/fortune-csv.mjs --check",
+    "test": "node --test tests/*.test.mjs",
+    "check": "npm run data:check && npm run typecheck && npm run lint && npm test"
   },
   "dependencies": {
     "next": "15.4.10",

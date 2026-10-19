@@ -19,6 +19,8 @@ const RANK_WEIGHTS: Record<string, number> = {
 
 export const F_ITEMS: string[] = candidates.items;
 export const F_UMA: string[] = candidates.uma;
+/* English names, row-aligned with F_UMA ("" where the CSV has none) */
+export const F_UMA_EN: string[] = candidates.umaEn;
 export const F_SCENARIOS: string[] = candidates.scenarios;
 /* Used for a rank that has no <rank>.csv */
 const FALLBACK_MSGS = [
@@ -33,6 +35,11 @@ const RANK_MSGS: Record<string, string[]> = candidates.messages;
 export const messagesFor = (rank: string) => RANK_MSGS[rank] ?? FALLBACK_MSGS;
 
 export const HASHTAG = "#今日の育成ウマ娘";
+/* Hashtags appended to the X post (the share card image shows only HASHTAG) */
+export const SHARE_HASHTAGS = [HASHTAG, "#Today’s_Trainable_Umamusume"];
+
+/* One reading per day per visitor; the training pick may be redrawn this many times that day */
+export const MAX_REROLLS = 5;
 
 export type FortuneResult = {
   ymd: string;      // "20261019"
@@ -40,6 +47,8 @@ export type FortuneResult = {
   rank: string;
   item: string;
   uma: string;
+  umaEn: string;
+  umaIx: number;    // index into F_UMA — redraws change only this
   scenario: string;
   msg: string;
   code: string;     // "{YYYYMMDD}-{rank}-{item}-{uma}-{scenario}-{msg}"
@@ -51,6 +60,10 @@ export const dotted = (ymd: string) => `${ymd.slice(0, 4)}.${ymd.slice(4, 6)}.${
 
 /* Links shared before messages were in the code have only five parts; give them a
    stable message from the rank's list */
+// Freeze the historical list sizes: appending messages must not change old five-part links.
+const LEGACY_MESSAGE_COUNTS: Record<string, number> = {
+  "大吉": 35, "中吉": 125, "小吉": 175, "吉": 5, "末吉": 125, "大大吉": 15, "凶": 25,
+};
 function legacyMsgIndex(code: string, count: number) {
   let h = 0;
   for (const c of code) h = (h * 31 + c.charCodeAt(0)) >>> 0;
@@ -61,7 +74,7 @@ function build(ymd: string, ix: Ix, msg: number): FortuneResult {
   const rank = F_RANKS[ix[0]];
   return {
     ymd, date: dotted(ymd),
-    rank, item: F_ITEMS[ix[1]], uma: F_UMA[ix[2]], scenario: F_SCENARIOS[ix[3]],
+    rank, item: F_ITEMS[ix[1]], uma: F_UMA[ix[2]], umaEn: F_UMA_EN[ix[2]] ?? "", umaIx: ix[2], scenario: F_SCENARIOS[ix[3]],
     msg: messagesFor(rank)[msg],
     code: [ymd, ...ix, msg].join("-"),
   };
@@ -93,22 +106,36 @@ export function decodeFortune(code: string): FortuneResult | null {
   const m = /^(\d{8})-(\d+)-(\d+)-(\d+)-(\d+)(?:-(\d+))?$/.exec(code);
   if (!m) return null;
   const ymd = m[1];
-  const mo = Number(ymd.slice(4, 6)), d = Number(ymd.slice(6, 8));
-  if (mo < 1 || mo > 12 || d < 1 || d > 31) return null;
+  const year = Number(ymd.slice(0, 4)), mo = Number(ymd.slice(4, 6)), d = Number(ymd.slice(6, 8));
+  const leap = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+  const days = [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+  if (year < 1 || mo < 1 || mo > 12 || d < 1 || d > days[mo - 1]) return null;
   const ix = [m[2], m[3], m[4], m[5]].map(Number) as Ix;
   const lists = [F_RANKS, F_ITEMS, F_UMA, F_SCENARIOS];
   if (ix.some((v, i) => v >= lists[i].length)) return null;
   const count = messagesFor(F_RANKS[ix[0]]).length;
-  const msg = m[6] != null ? Number(m[6]) : legacyMsgIndex(code, count);
+  const msg = m[6] != null ? Number(m[6]) : legacyMsgIndex(code, Math.min(count, LEGACY_MESSAGE_COUNTS[F_RANKS[ix[0]]] ?? count));
   if (msg >= count) return null;
   return build(ymd, ix, msg);
+}
+
+/* Redraw only the training pick: same date, rank, item, scenario and message; the new pick is
+   chosen uniformly from the characters not in `exclude` (everyone already shown today).
+   Returns null when nobody is left. */
+export function rerollUma(res: FortuneResult, exclude: number[], rand: () => number = Math.random): FortuneResult | null {
+  const [ymd, rank, item, , scenario, msg] = res.code.split("-");
+  const taken = new Set(exclude);
+  const pool = F_UMA.map((_, i) => i).filter((i) => !taken.has(i));
+  if (!pool.length) return null;
+  const uma = pool[Math.floor(rand() * pool.length)];
+  return build(ymd, [Number(rank), Number(item), uma, Number(scenario)], Number(msg));
 }
 
 export const sharePath = (res: FortuneResult) => `/fortune/r/${res.code}`;
 
 /* Whole post goes in `text` (no url/hashtags params) so the line breaks stay put */
 export function shareText(res: FortuneResult, url: string) {
-  return `今日の運勢は「${res.rank}」！\nラッキーアイテム：${res.item}\n育成ウマ娘：${res.uma}\nおすすめシナリオ：${res.scenario}\n\n${url}\n\n${HASHTAG}`;
+  return `今日の運勢は「${res.rank}」！\nラッキーアイテム：${res.item}\n育成ウマ娘：${res.uma}\nおすすめシナリオ：${res.scenario}\n\n${url}\n\n${SHARE_HASHTAGS.join(" ")}`;
 }
 
 export const intentUrl = (text: string) => "https://x.com/intent/post?text=" + encodeURIComponent(text);

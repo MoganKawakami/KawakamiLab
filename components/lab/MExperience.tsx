@@ -1,7 +1,9 @@
+import { useDialogFocus } from "@/lib/use-dialog-focus";
 /* MExperience.tsx — full-screen publication experience (phone) */
 import { useRef } from "react";
 import type { Publication } from "@/lib/data";
-import { ChevronLeft, ChevronRight, Placeholder, coverProps, swipeHandlers } from "./art";
+import { ChevronLeft, ChevronRight, Cover, swipeHandlers } from "./art";
+import { PreviewThumbs } from "./PageViewer";
 
 export function MExperience({ pub, index, total, onClose, onNav }: {
   pub: Publication; index: number; total: number; onClose: () => void; onNav: (dir: number) => void;
@@ -9,8 +11,10 @@ export function MExperience({ pub, index, total, onClose, onNav }: {
   const drag = useRef({ x: 0, a: false });
   const { onDown, onUp } = swipeHandlers(drag, 50, onNav);
 
+  const dialog = useDialogFocus();
+
   return (
-    <div className="mexp mexp-enter" role="dialog" aria-modal="true">
+    <div className="mexp mexp-enter" ref={dialog} tabIndex={-1} role="dialog" aria-modal="true" aria-label={pub.title}>
       <div className="mexp__scrim" aria-hidden="true">
         <div className="blob b1" /><div className="blob b2" /><div className="blob b3" />
       </div>
@@ -30,7 +34,7 @@ export function MExperience({ pub, index, total, onClose, onNav }: {
         {/* keyed by publication so the swap animation replays */}
         <div className="mexp__inner" key={pub.id}>
           <div className="mexp__cover">
-            <Placeholder ratio={pub.ratio} {...coverProps(pub)} big />
+            <Cover p={pub} ratio={pub.ratio} big />
           </div>
           <div className="mexp__detail">
             <div className="eyebrow klabel">{pub.secret ? "????" : pub.upcoming ? "Upcoming Release" : "From the Archive"}</div>
@@ -50,7 +54,7 @@ export function MExperience({ pub, index, total, onClose, onNav }: {
             <div className="previews">
               <span className="lab-tag">Preview Plates — 試し読み</span>
               <div className="previews__grid">
-                {pub.previews.map((p, i) => <div className="thumb" key={i}><Placeholder ratio={1.3} label={p} hint={!pub.secret} from={pub.from} to={pub.to} /></div>)}
+                <PreviewThumbs pub={pub} />
               </div>
             </div>
           </div>

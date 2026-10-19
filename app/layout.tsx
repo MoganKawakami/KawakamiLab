@@ -1,14 +1,17 @@
 import type { Metadata, Viewport } from "next";
 
 /* absolute base for share-card URLs; Vercel provides the production domain */
-const site = process.env.VERCEL_PROJECT_PRODUCTION_URL
-  ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-  : "http://localhost:3000";
+const site = process.env.SITE_URL
+  || (process.env.VERCEL_PROJECT_PRODUCTION_URL
+    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+    : "http://localhost:3000");
+const siteUrl = new URL(site);
+if (!["http:", "https:"].includes(siteUrl.protocol)) throw new Error("SITE_URL must be an absolute HTTP(S) URL");
 
 export const metadata: Metadata = {
-  metadataBase: new URL(site),
+  metadataBase: siteUrl,
   title: "KAWAKAMI Lab.",
-  description: "想像が、視覚芸術になる場所。 KAWAKAMI Lab. — creative laboratory.",
+  description: "推しを描く。可愛く描く。ただそれだけ。 KAWAKAMI Lab. — creative laboratory.",
 };
 
 export const viewport: Viewport = {

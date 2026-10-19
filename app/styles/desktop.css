@@ -708,10 +708,8 @@ body.locked { overflow: hidden; }
 .pf-favtrack{display:flex;transition:transform calc(.5s / var(--motion)) cubic-bezier(.16,.84,.34,1)}
 .pf-favtrack .pf-fav{flex:0 0 calc(100% / 3);padding:0 7px}
 .pf-favnav{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:12px}
-.pf-favnav button{width:30px;height:30px;border-radius:50%;border:1px solid var(--c-line);background:var(--c-white);color:var(--c-ink);display:grid;place-items:center;padding:0;cursor:pointer}
-.pf-favnav button:disabled{opacity:.35;cursor:default}
 .pf-favdots{display:flex;gap:6px}
-.pf-favdots i{width:7px;height:7px;border-radius:50%;background:var(--c-line);cursor:pointer;transition:width .3s,background .3s}
+.pf-favdots i{width:7px;height:7px;border-radius:50%;background:var(--c-line);transition:width .3s,background .3s}
 .pf-favdots i.on{width:20px;border-radius:5px;background:var(--grad-tri)}
 
 .prof__facet{position:relative}

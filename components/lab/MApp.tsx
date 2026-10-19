@@ -42,6 +42,7 @@ export default function MApp() {
   /* lock body when menu or gallery open */
   useEffect(() => {
     document.body.classList.toggle("locked", menu || openIndex != null);
+    return () => document.body.classList.remove("locked");
   }, [menu, openIndex]);
 
   const jump = useCallback((id: string) => {

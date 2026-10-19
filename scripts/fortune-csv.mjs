@@ -1,7 +1,9 @@
-// fortune-csv.mjs — turns the fortune CSVs (character / scenario / item) into
-// lib/fortune-candidates.json. Runs before `npm run dev` and `npm run build`.
-// Each CSV needs a header row with a "name" column; other columns are ignored.
-import { readFileSync, writeFileSync } from "node:fs";
+// fortune-csv.mjs — turns the fortune CSVs into lib/fortune-candidates.json.
+// Runs before `npm run dev` and `npm run build`.
+//   character.csv / scenario.csv / item.csv — "name" column
+//   <rank>.csv (大吉.csv, 凶.csv, …)            — "comment" column: one-line messages for that rank
+// Other columns are ignored.
+import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
@@ -29,19 +31,29 @@ function parseCsv(text) {
   return rows;
 }
 
-function names(file) {
+function column(file, name) {
   const [header, ...rows] = parseCsv(readFileSync(join(root, file), "utf8"));
-  const col = header.map((h) => h.trim()).indexOf("name");
-  if (col < 0) throw new Error(`${file}: no "name" column in the header`);
+  const col = header.map((h) => h.trim()).indexOf(name);
+  if (col < 0) throw new Error(`${file}: no "${name}" column in the header`);
   const list = rows.map((r) => (r[col] ?? "").trim()).filter(Boolean);
-  if (!list.length) throw new Error(`${file}: no names found`);
+  if (!list.length) throw new Error(`${file}: no ${name} values found`);
   return list;
 }
 
+const LISTS = ["character.csv", "scenario.csv", "item.csv"];
+const messages = Object.fromEntries(
+  readdirSync(root)
+    .filter((f) => f.endsWith(".csv") && !LISTS.includes(f))
+    .sort()
+    .map((f) => [f.slice(0, -4).normalize("NFC"), column(f, "comment")]),
+);
+
 const out = {
-  uma: names("character.csv"),
-  scenarios: names("scenario.csv"),
-  items: names("item.csv"),
+  uma: column("character.csv", "name"),
+  scenarios: column("scenario.csv", "name"),
+  items: column("item.csv", "name"),
+  messages,
 };
 writeFileSync(join(root, "lib/fortune-candidates.json"), JSON.stringify(out, null, 2) + "\n");
 console.log(`fortune candidates: ${out.uma.length} uma, ${out.scenarios.length} scenarios, ${out.items.length} items`);
+console.log(`fortune messages: ${Object.entries(messages).map(([k, v]) => `${k} ${v.length}`).join(", ")}`);

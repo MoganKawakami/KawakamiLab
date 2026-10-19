@@ -20,7 +20,15 @@ async function font(family: string, weight: number, text: string) {
 }
 
 const rankSize = (rank: string) => (rank.length <= 1 ? 240 : rank.length === 2 ? 196 : 120);
-const umaSize = (name: string) => (name.length <= 8 ? 84 : name.length <= 10 ? 60 : 52);
+/* Design sizes (84 / 60 / 52px), capped so the name always fits the ~600px column on one line */
+const umaSize = (name: string) =>
+  Math.min(name.length <= 8 ? 84 : name.length <= 10 ? 60 : 52, Math.floor(600 / name.length));
+/* Item / scenario values get ~378px; shrink long ones (Latin counts as about half a glyph)
+   so they fit in at most two lines */
+const valueSize = (text: string) => {
+  const units = [...text].reduce((n, c) => n + (c.charCodeAt(0) < 0x2000 ? 0.55 : 1), 0);
+  return Math.max(22, Math.min(36, Math.floor((378 * 1.8) / units)));
+};
 
 export default async function Image({ params }: { params: Promise<{ code: string }> }) {
   const r = decodeFortune((await params).code) ?? drawFortune();
@@ -35,9 +43,9 @@ export default async function Image({ params }: { params: Promise<{ code: string
   ]);
 
   const row = (dt: string, dd: string) => (
-    <div style={{ display: "flex", alignItems: "baseline", gap: 24, padding: "22px 0", borderTop: `2px dashed ${C.line}` }}>
+    <div style={{ display: "flex", alignItems: "center", gap: 24, padding: "22px 0", borderTop: `2px dashed ${C.line}` }}>
       <div style={{ width: 200, fontFamily: "Zen Kaku Gothic New", fontWeight: 700, fontSize: 17, letterSpacing: "0.12em", color: C.muted }}>{dt}</div>
-      <div style={{ fontFamily: "Zen Kaku Gothic New", fontWeight: 700, fontSize: 36, color: C.ink }}>{dd}</div>
+      <div style={{ flex: 1, fontFamily: "Zen Kaku Gothic New", fontWeight: 700, fontSize: valueSize(dd), lineHeight: 1.25, color: C.ink }}>{dd}</div>
     </div>
   );
 

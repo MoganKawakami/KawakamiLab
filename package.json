@@ -3,7 +3,9 @@
   "version": "0.2.0",
   "private": true,
   "scripts": {
+    "predev": "node scripts/fortune-csv.mjs",
     "dev": "next dev --turbopack",
+    "prebuild": "node scripts/fortune-csv.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",

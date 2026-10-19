@@ -2,7 +2,7 @@
 
 /* Fortune.tsx — Lab. Fortune page (phone + PC) and the shared-result page */
 import { useEffect, useState } from "react";
-import { drawFortune, intentUrl, sharePath, shareText, todayYmd, type FortuneResult } from "@/lib/fortune-data";
+import { dotted, drawFortune, intentUrl, sharePath, shareText, todayYmd, type FortuneResult } from "@/lib/fortune-data";
 import { Logo } from "../lab/art";
 
 const Arrow = () => (
@@ -37,7 +37,7 @@ function Shell({ orbLabel, busy, children }: { orbLabel: string; busy: boolean; 
         </div>
 
         <div className="fright">{children}</div>
-        <div className="fnote">結果は1日1回・日付で固定</div>
+        <div className="fnote">占うたびに結果が変わります</div>
       </main>
     </div>
   );
@@ -79,7 +79,8 @@ export function FortuneApp() {
   const [n, setN] = useState(0);
   const [today, setToday] = useState("");
 
-  useEffect(() => { setToday(drawFortune(todayYmd()).date); }, []);
+  /* the date comes from the visitor's clock, so set it after mounting */
+  useEffect(() => { setToday(dotted(todayYmd())); }, []);
 
   const run = () => {
     if (busy) return;

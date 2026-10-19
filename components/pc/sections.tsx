@@ -1,16 +1,17 @@
 /* sections.tsx — PC layout: Nav, Hero, Marquee, About, Publications, Events, Footer */
 import { useRef, useState } from "react";
-import { PAST_EVENTS, PROFILE_FACETS, PUBLICATIONS } from "@/lib/data";
-import { ChevronLeft, ChevronRight, Logo, Placeholder, ShapeNodes, ShapePlus, ShapeRing, swipeHandlers } from "../lab/art";
+import { PAST_EVENTS, PROFILE_FACETS, PUBLICATIONS, SOCIAL, STATS as COUNTS, type Fav } from "@/lib/data";
+import { ChevronLeft, ChevronRight, Logo, Placeholder, ShapeNodes, ShapePlus, ShapeRing, coverProps, swipeHandlers } from "../lab/art";
+import { daysUntil } from "../lab/sections";
 
 type Jump = (id: string) => void;
 
 /* ---------------- NAV ---------------- */
 const NAV_LINKS = [
   { en: "About", jp: "概要", id: "about" },
-  { en: "Profile", jp: "主宰", id: "profile" },
+  { en: "Profile", jp: "サークル主", id: "profile" },
   { en: "Publications", jp: "刊行物", id: "publications" },
-  { en: "Events", jp: "開催情報", id: "events" },
+  { en: "Events", jp: "参加イベント", id: "events" },
 ];
 
 export function Nav({ onJump }: { onJump: Jump }) {
@@ -57,12 +58,17 @@ export function Hero({ onJump }: { onJump: Jump }) {
 
       <div className="container hero__inner">
         <div className="hero__copy">
-          <div className="eyebrow hero__eyebrow reveal in">Anime Illustration Studio · 創作研究室</div>
+          <div className="eyebrow hero__eyebrow reveal in">Anime Illustration Studio · 創作研究所</div>
           <h1 className="reveal in d1">
             KAWAKAMI<br /><span className="lab">Lab</span><span className="dot">.</span>
           </h1>
-          <p className="hero__jp reveal in d2">想像が、視覚芸術になる場所。</p>
-          <p className="hero__en reveal in d3">Where imagination becomes visual art — a creative laboratory researching, designing, and publishing visual experiences.</p>
+          <p className="hero__jp reveal in d2">推しを信じて描く。</p>
+          <p className="hero__en reveal in d3">Drawing what we love, with conviction — a circle devoted to illustrating our favorite characters.</p>
+          <a className="fortune-entry reveal in d3" href="/fortune">
+            <span className="orb" aria-hidden="true"><i /></span>
+            <span className="txt"><span className="k">LAB. FORTUNE · 占い</span><b>今日の運勢を占う</b><small>運勢 / 育成ウマ娘を占えます</small></span>
+            <span className="go" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg></span>
+          </a>
           <div className="hero__actions reveal in d4">
             <button className="btn btn--primary" onClick={() => onJump("publications")}>
               Explore Publications <span className="arrow">→</span>
@@ -96,14 +102,14 @@ function SpecimenCard() {
       }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "4px 6px 12px" }}>
           <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: ".2em", color: "var(--c-muted)" }}>FIG.01 — FEATURED</span>
-          <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: ".2em", color: "var(--c-deep)" }}>2024</span>
+          <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: ".2em", color: "var(--c-deep)" }}>2026</span>
         </div>
         <div style={{ borderRadius: 14, overflow: "hidden" }}>
-          <Placeholder ratio={1.3} label="CHROMA" sub="彩光" from="#5fc8ff" to="#2563EB" big />
+          <Placeholder ratio={1.3} label="ちょ、タキオンさん！因子研究してください！ vol.2" from="#7dd3fc" to="#0ea5e9" big />
         </div>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 6px 4px" }}>
-          <span style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 15 }}>Original Illustration</span>
-          <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--c-muted)" }}>A4 · 64P</span>
+          <span style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 15 }}>イラスト集&amp;短編集</span>
+          <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--c-muted)" }}>B5 · 16P</span>
         </div>
       </div>
     </div>
@@ -123,6 +129,43 @@ export function Marquee() {
 }
 
 /* ---------------- PROFILE (circle owner, swipeable deck) ---------------- */
+
+/* Favourites: pages of three with arrows and dots; swipes here don't flip the deck */
+function FavSlider({ favs }: { favs: Fav[] }) {
+  const per = 3, pages = Math.ceil(favs.length / per);
+  const [pg, setPg] = useState(0);
+  const sx = useRef<number | null>(null);
+  const go = (n: number) => setPg(Math.max(0, Math.min(pages - 1, n)));
+  const clientX = (e: React.TouchEvent | React.PointerEvent, end: boolean) =>
+    "touches" in e ? (end ? e.changedTouches[0].clientX : e.touches[0].clientX) : e.clientX;
+  const down = (e: React.TouchEvent | React.PointerEvent) => { e.stopPropagation(); sx.current = clientX(e, false); };
+  const up = (e: React.TouchEvent | React.PointerEvent) => {
+    e.stopPropagation();
+    if (sx.current == null) return;
+    const dx = clientX(e, true) - sx.current;
+    sx.current = null;
+    if (dx < -40) go(pg + 1); else if (dx > 40) go(pg - 1);
+  };
+  return (
+    <div className="pf-favslider" onPointerDown={down} onPointerUp={up} onTouchStart={down} onTouchEnd={up}>
+      <div className="pf-favwin">
+        <div className="pf-favtrack" style={{ transform: `translateX(-${pg * 100}%)` }}>
+          {favs.map((v) => (
+            <div className="pf-fav" key={v.code}>
+              <div className="pf-fav-art"><Placeholder ratio={1} label={v.code} from={v.from} to={v.to} /></div>
+              <div className="cap">{v.name}<small>{v.code}</small></div>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="pf-favnav pf-favnav--top">
+        <button aria-label="前の推し" disabled={pg === 0} onClick={() => go(pg - 1)}><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M15 5l-7 7 7 7" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg></button>
+        <span className="pf-favdots">{Array.from({ length: pages }).map((_, i) => <i key={i} className={i === pg ? "on" : ""} onClick={() => go(i)} />)}</span>
+        <button aria-label="次の推し" disabled={pg === pages - 1} onClick={() => go(pg + 1)}><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg></button>
+      </div>
+    </div>
+  );
+}
 function Profile() {
   const [i, setI] = useState(0);
   const [back, setBack] = useState(false);
@@ -154,8 +197,8 @@ function Profile() {
         <div className="prof__handle">@kawakami_lab</div>
         <div className="prof__role">サークル主</div>
         <div className="prof__socials">
-          <a href="#contact" aria-label="X / Twitter"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M3 3l7.5 9.5L3.5 21H6l6-7 5.5 7H21l-7.8-10L20.5 3H18l-5.4 6.4L8 3H3z" fill="currentColor" /></svg></a>
-          <a href="#contact" aria-label="pixiv"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 21V6.5C9 5 10 4 12.5 4S16 5.4 16 7.4 14.6 11 12.2 11H10.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg></a>
+          <a href={SOCIAL.x} target="_blank" rel="noopener noreferrer" aria-label="X / Twitter"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M3 3l7.5 9.5L3.5 21H6l6-7 5.5 7H21l-7.8-10L20.5 3H18l-5.4 6.4L8 3H3z" fill="currentColor" /></svg></a>
+          <a href={SOCIAL.pixiv} target="_blank" rel="noopener noreferrer" aria-label="pixiv"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 21V6.5C9 5 10 4 12.5 4S16 5.4 16 7.4 14.6 11 12.2 11H10.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg></a>
           <a href="#contact" aria-label="Mail"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2.5" stroke="currentColor" strokeWidth="1.8" /><path d="M4 7l8 6 8-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg></a>
         </div>
       </aside>
@@ -178,16 +221,7 @@ function Profile() {
                 </dl>
               )}
               {ff.chips && <div className="pf-chips">{ff.chips.map((c) => <span className="pf-chip" key={c}><i />{c}</span>)}</div>}
-              {ff.favs && (
-                <div className="pf-favs">
-                  {ff.favs.map((v) => (
-                    <div className="pf-fav" key={v.code}>
-                      <div className="pf-fav-art"><Placeholder ratio={1} label={v.code} from={v.from} to={v.to} /></div>
-                      <div className="cap">{v.name}<small>{v.code}</small></div>
-                    </div>
-                  ))}
-                </div>
-              )}
+              {ff.favs && <FavSlider favs={ff.favs} />}
               {ff.quote && <div className="pf-quote">{ff.quote}</div>}
             </div>
           ))}
@@ -210,9 +244,9 @@ function Profile() {
 
 /* ---------------- ABOUT ---------------- */
 const STATS = [
-  { n: "6+", l: "Publications", jp: "刊行物" },
-  { n: "2019", l: "Established", jp: "設立" },
-  { n: "12", l: "Events", jp: "頒布実績" },
+  { n: COUNTS.publications, l: "Publications", jp: "刊行物" },
+  { n: COUNTS.established, l: "Established", jp: "設立" },
+  { n: COUNTS.events, l: "Events", jp: "頒布実績" },
   { n: "∞", l: "Ideas in progress", jp: "進行中" },
 ];
 
@@ -226,8 +260,8 @@ export function About() {
             <h2 className="grad-text">A laboratory<br />for visual art.</h2>
           </div>
           <div className="about__lead reveal d1">
-            <p><span className="jp">KAWAKAMI Lab.（カワカミ・ラボ）は、想像を視覚体験へと翻訳する創作研究室です。</span></p>
-            <p>We are a doujin circle that operates like a studio — <strong>researching, designing, and publishing</strong> anime illustration, original artwork, and fan art with the rigor of a creative laboratory. Every release is an experiment in light and color, refined until imagination becomes something you can hold.</p>
+            <p><span className="jp">KAWAKAMI Lab.（カワカミ・ラボ）は、推しを描くためのサークルです。</span></p>
+            <p>We are a doujin circle dedicated to <strong>drawing the characters we love</strong> — through anime illustration, original artwork, and fan art. Every release is an experiment in light and color, refined until imagination becomes something you can hold.</p>
           </div>
         </div>
 
@@ -267,7 +301,7 @@ export function Publications({ onOpen }: { onOpen: (i: number) => void }) {
           {PUBLICATIONS.map((p, i) => (
             <article className={"pub reveal d" + ((i % 4) + 1)} key={p.id} onClick={() => onOpen(i)}>
               <div className="pub__cover">
-                <div className="art"><Placeholder ratio={p.ratio} label={p.title} sub={p.jp} from={p.from} to={p.to} /></div>
+                <div className="art"><Placeholder ratio={p.ratio} {...coverProps(p)} /></div>
                 <div className="shine" />
                 <span className="yr">{p.year}</span>
                 <span className="open">
@@ -276,7 +310,7 @@ export function Publications({ onOpen }: { onOpen: (i: number) => void }) {
               </div>
               <div className="pub__meta">
                 <h3>{p.title}</h3>
-                <div className="jp">{p.jp}</div>
+                {p.jp && <div className="jp">{p.jp}</div>}
                 <div className="row">
                   <span className="type">{p.type}</span>
                   <span className="price">{p.price}</span>
@@ -293,12 +327,6 @@ export function Publications({ onOpen }: { onOpen: (i: number) => void }) {
 /* ---------------- EVENTS (past events, same archive as the phone layout) ---------------- */
 const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
 const WEEK = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
-
-function daysUntil(iso: string) {
-  const now = new Date();
-  const d = new Date(iso + "T00:00:00");
-  return Math.ceil((d.getTime() - new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime()) / 86400000);
-}
 
 export function Events() {
   const [active, setActive] = useState(0);
@@ -331,50 +359,58 @@ export function Events() {
         </div>
 
         {/* reveal sits on a static wrapper so changing the direction class never drops its "in" state */}
-        <div className="ev reveal d1">
-          <div className={dir > 0 ? "ev-next" : "ev-prev"}>
-            <div className="ev__stage" onPointerDown={onDown} onPointerUp={onUp}>
-              <div className="ev__ghost" aria-hidden="true">{String(active + 1).padStart(2, "0")}</div>
+        <div className="reveal d1"><div className={"ev " + (dir > 0 ? "ev-next" : "ev-prev")}>
+          <div className="ev__stage" onPointerDown={onDown} onPointerUp={onUp}>
+            <div className="ev__ghost" aria-hidden="true">{String(active + 1).padStart(2, "0")}</div>
 
-              <div className="ev__main" key={"m" + ev.id}>
-                <span className="ev__badge"><span className="pip" />{active === 0 ? "Latest · 直近の参加" : `Archive ${active + 1} / ${total}`}</span>
-                <h3 className="ev__name">{ev.name}</h3>
-                <dl className="ev__rows">
-                  <div className="ev__row"><dt>Venue · 会場</dt><dd><span className="jp">{ev.venueJp}</span></dd></div>
-                  <div className="ev__row"><dt>Booth · 配置</dt><dd><span className="booth">{ev.booth}</span></dd></div>
-                  <div className="ev__row"><dt>Notes · 頒布物</dt><dd><span className="jp">{ev.note}</span></dd></div>
-                </dl>
-              </div>
-
-              <div className="ev__side" key={"s" + ev.id}>
-                <span className="month">{MONTHS[d.getMonth()]}</span>
-                <span className="day">{String(d.getDate()).padStart(2, "0")}</span>
-                <span className="yw">{d.getFullYear()} · {WEEK[d.getDay()]}</span>
-                <span className="ev__count" suppressHydrationWarning><b>{Math.max(0, -dd)}</b> 日前に参加</span>
-              </div>
-            </div>
-
-            <div className="ev__rail">
-              <button className="ev__btn" aria-label="Previous event" disabled={active === 0} onClick={() => go(active - 1, -1)}><ChevronLeft /></button>
-              <div className="ev__track">
-                <div className="ev__line"><i style={{ width: progress + "%" }} /></div>
-                <div className="ev__node-row">
-                  {PAST_EVENTS.map((e, i) => (
-                    <button key={e.id}
-                      className={"ev__node" + (i === active ? " active" : "") + (i < active ? " past" : "")}
-                      onClick={() => go(i)} aria-label={e.name}>
-                      <span className="ev__dot" />
-                      <span className="nd-date">{e.iso.slice(5).replace("-", ".")}</span>
-                      <span className="nd-name">{e.name}</span>
-                    </button>
-                  ))}
+            <div className="ev__mainstack">
+              {PAST_EVENTS.map((e, i) => (
+                <div className={"ev__main" + (i === active ? " is-active" : "")} key={"m" + e.id} aria-hidden={i !== active}>
+                  <span className="ev__badge"><span className="pip" />{i === total - 1 ? "Latest · 直近の参加" : `Archive ${i + 1} / ${total}`}</span>
+                  <h3 className="ev__name">{e.name}</h3>
+                  {e.jp && <div className="ev__namejp">{e.jp}</div>}
+                  <dl className="ev__rows">
+                    <div className="ev__row"><dt>Venue · 会場</dt><dd><span className="jp">{e.venueJp}</span></dd></div>
+                    {e.booth && <div className="ev__row"><dt>Booth · 配置</dt><dd><span className="booth">{e.booth}</span></dd></div>}
+                    {e.note && <div className="ev__row"><dt>Notes · 頒布物</dt><dd><span className="jp">{e.note}</span></dd></div>}
+                    {e.role && <div className="ev__row"><dt>Role · 参加形態</dt><dd><span className="jp">{e.role}</span></dd></div>}
+                  </dl>
                 </div>
-              </div>
-              <button className="ev__btn" aria-label="Next event" disabled={active === total - 1} onClick={() => go(active + 1, 1)}><ChevronRight /></button>
+              ))}
             </div>
-            <div className="ev__hint">← Drag · Swipe · Tap a node →</div>
+
+            <div className="ev__side" key={"s" + ev.id}>
+              <span className="month">{MONTHS[d.getMonth()]}</span>
+              <span className="day">{String(d.getDate()).padStart(2, "0")}</span>
+              <span className="yw">{d.getFullYear()} · {WEEK[d.getDay()]}</span>
+              <span className="ev__count" suppressHydrationWarning><b>{Math.max(0, -dd)}</b> 日前に参加</span>
+            </div>
+
+            <div className="ev__img" key={"i" + ev.id}>
+              <Placeholder ratio={1} label="EVENT IMAGE" sub={ev.name} from="#7dd3fc" to="#2563EB" />
+            </div>
           </div>
-        </div>
+
+          <div className="ev__rail">
+            <button className="ev__btn" aria-label="Previous event" disabled={active === 0} onClick={() => go(active - 1, -1)}><ChevronLeft /></button>
+            <div className="ev__track">
+              <div className="ev__line"><i style={{ width: progress + "%" }} /></div>
+              <div className="ev__node-row">
+                {PAST_EVENTS.map((e, i) => (
+                  <button key={e.id}
+                    className={"ev__node" + (i === active ? " active" : "") + (i < active ? " past" : "")}
+                    onClick={() => go(i)} aria-label={e.name}>
+                    <span className="ev__dot" />
+                    <span className="nd-date">{e.iso.slice(5).replace("-", ".")}</span>
+                    <span className="nd-name">{e.name}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+            <button className="ev__btn" aria-label="Next event" disabled={active === total - 1} onClick={() => go(active + 1, 1)}><ChevronRight /></button>
+          </div>
+          <div className="ev__hint">← Drag · Swipe · Tap a node →</div>
+        </div></div>
       </div>
     </section>
   );
@@ -411,13 +447,13 @@ export function Footer({ onJump }: { onJump: Jump }) {
             <h4>Navigate</h4>
             {link("about", "About / 概要")}
             {link("publications", "Publications / 刊行物")}
-            {link("events", "Events / 開催情報")}
-            {link("profile", "Profile / 主宰紹介")}
+            {link("events", "Events / 参加イベント")}
+            {link("profile", "Profile / サークル主紹介")}
           </div>
           <div>
             <h4>Connect</h4>
-            <a href="#contact">X / Twitter</a>
-            <a href="#contact">pixiv</a>
+            <a href={SOCIAL.x} target="_blank" rel="noopener noreferrer">X / Twitter</a>
+            <a href={SOCIAL.pixiv} target="_blank" rel="noopener noreferrer">pixiv</a>
           </div>
         </div>
 

@@ -1,5 +1,6 @@
 /* art.tsx — KAWAKAMI Lab. mark, decorative shapes and placeholder artwork */
 import { useId } from "react";
+import type { Publication } from "@/lib/data";
 
 /* The circuit-"K": a vertical spine, two diagonal traces branching from a
    central junction node, with terminal nodes — reads as both K and a lab schematic. */
@@ -66,8 +67,8 @@ export function ShapePlus({ size = 60 }: { size?: number }) {
 /* Striped, gradient-tinted placeholder. ratio controls the cover proportion;
    label is the monospace explainer. Swap for real artwork later. */
 export function Placeholder({
-  ratio = 1.4, label = "COVER", from = "var(--c-primary)", to = "var(--c-deep)", sub, big = false,
-}: { ratio?: number; label?: string; from?: string; to?: string; sub?: string; big?: boolean }) {
+  ratio = 1.4, label = "COVER", from = "var(--c-primary)", to = "var(--c-deep)", sub, big = false, hint = true,
+}: { ratio?: number; label?: string; from?: string; to?: string; sub?: string; big?: boolean; hint?: boolean }) {
   return (
     <div className="ph" style={{
       position: "relative", width: "100%", aspectRatio: String(1 / ratio),
@@ -94,13 +95,18 @@ export function Placeholder({
         {sub && <div style={{
           fontFamily: "var(--font-jp)", fontSize: big ? 18 : 13, marginTop: 8, opacity: .85, fontWeight: 500,
         }}>{sub}</div>}
-        <div style={{
+        {hint && <div style={{
           fontFamily: "var(--font-mono)", fontSize: 9, letterSpacing: ".2em", marginTop: 12,
           opacity: .6, textTransform: "uppercase",
-        }}>drop artwork here</div>
+        }}>drop artwork here</div>}
       </div>
     </div>
   );
+}
+
+/* Cover props for a publication: unannounced ones show "Coming soon..." with no hint */
+export function coverProps(p: Publication) {
+  return { label: p.cover || p.title, sub: p.cover ? undefined : p.jp, hint: !p.secret, from: p.from, to: p.to };
 }
 
 export function ChevronLeft() {

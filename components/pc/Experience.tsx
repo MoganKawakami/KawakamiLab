@@ -1,6 +1,6 @@
 /* Experience.tsx — PC full-screen publication exhibition */
 import type { Publication } from "@/lib/data";
-import { ChevronLeft, ChevronRight, Logo, Placeholder } from "../lab/art";
+import { ChevronLeft, ChevronRight, Logo, Placeholder, coverProps } from "../lab/art";
 
 export function Experience({ pub, index, total, onClose, onNav }: {
   pub: Publication; index: number; total: number; onClose: () => void; onNav: (dir: number) => void;
@@ -31,25 +31,28 @@ export function Experience({ pub, index, total, onClose, onNav }: {
         {/* keyed by publication so the swap animation replays */}
         <div className="exp__inner" key={pub.id}>
           <div className="exp__cover swap">
-            <Placeholder ratio={pub.ratio} label={pub.title} sub={pub.jp} from={pub.from} to={pub.to} big />
+            <Placeholder ratio={pub.ratio} {...coverProps(pub)} big />
           </div>
 
           <div className="exp__detail swap">
-            <div className="eyebrow klabel">{pub.upcoming ? "Upcoming Release" : "From the Archive"}</div>
+            <div className="eyebrow klabel">{pub.secret ? "????" : pub.upcoming ? "Upcoming Release" : "From the Archive"}</div>
             <h2>{pub.title}</h2>
-            <div className="jp">{pub.jp}</div>
-            <p className="desc">{pub.desc}<span className="jp">{pub.descJp}</span></p>
+            {pub.jp && <div className="jp">{pub.jp}</div>}
+            <div className="desc">
+              {pub.descLabel && <span className="lab-tag" style={{ display: "block", marginBottom: 12 }}>{pub.descLabel}</span>}
+              <span className="jp" style={{ marginTop: 0, color: "var(--c-ink-2)", fontSize: 16 }}>{pub.descJp}</span>
+              <span className="en" style={{ display: "block", marginTop: 14, fontSize: 14.5, color: "var(--c-muted)", lineHeight: 1.75 }}>{pub.desc}</span>
+            </div>
             <dl className="spec">
               <div><dt>Released</dt><dd>{pub.date}</dd></div>
               <div className="price-cell"><dt>{pub.priceJp} / Price</dt><dd>{pub.price}</dd></div>
               <div><dt>Distributed at</dt><dd>{pub.event}</dd></div>
-              <div><dt>Format</dt><dd>{pub.format}</dd></div>
+              <div><dt>Format</dt><dd style={{ whiteSpace: "pre-line" }}>{pub.format}</dd></div>
             </dl>
-            <div className="tags">{pub.tags.map((t) => <span className="tag" key={t}>#{t}</span>)}</div>
             <div className="previews">
               <span className="lab-tag">Preview Plates — 試し読み</span>
               <div className="previews__grid">
-                {pub.previews.map((p, i) => <div className="thumb" key={i}><Placeholder ratio={1.3} label={p} from={pub.from} to={pub.to} /></div>)}
+                {pub.previews.map((p, i) => <div className="thumb" key={i}><Placeholder ratio={1.3} label={p} hint={!pub.secret} from={pub.from} to={pub.to} /></div>)}
               </div>
             </div>
           </div>

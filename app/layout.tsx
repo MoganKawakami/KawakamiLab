@@ -1,9 +1,12 @@
-import "./styles/desktop.css";
-import "./styles/mobile.css";
-import "./globals.css";
 import type { Metadata, Viewport } from "next";
 
+/* absolute base for share-card URLs; Vercel provides the production domain */
+const site = process.env.VERCEL_PROJECT_PRODUCTION_URL
+  ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+  : "http://localhost:3000";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(site),
   title: "KAWAKAMI Lab.",
   description: "想像が、視覚芸術になる場所。 KAWAKAMI Lab. — creative laboratory.",
 };

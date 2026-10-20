@@ -1,10 +1,12 @@
 /* sections.tsx — phone-optimized sections */
-import { useEffect, useRef, useState } from "react";
-import { ICON, LINKS, MARQUEE_WORDS, PAST_EVENTS, PROFILE_FACETS, PUBLICATIONS, SOCIAL, STATS, type Fav } from "@/lib/data";
+import { useRef, useState } from "react";
+import { ICON, LINKS, MARQUEE_WORDS, PAST_EVENTS, PROFILE_FACETS, PUBLICATIONS, SOCIAL, STATS } from "@/lib/data";
 import { MONTHS, WEEK, daysUntil } from "@/lib/event-date";
 import { swipeHandlers } from "@/lib/swipe";
 import { ChevronLeft, ChevronRight, Cover, FocusImg, Logo, Photo, Placeholder, ShapePlus, ShapeRing } from "@/components/shared/art";
 import { FortuneEntry } from "@/components/shared/Crystal";
+import { Helpers } from "@/components/shared/EventHelpers";
+import { FavStrip } from "@/components/shared/FavStrip";
 
 type Jump = (id: string) => void;
 
@@ -99,35 +101,6 @@ export function MMarquee() {
 
 /* ---------------- PROFILE deck ---------------- */
 
-/* Favourites: horizontal scroll strip with a progress bar; swipes here don't flip the deck */
-function MFavSlider({ favs }: { favs: readonly Fav[] }) {
-  const win = useRef<HTMLDivElement>(null);
-  const [prog, setProg] = useState({ p: 0, w: 1 });
-  const onScroll = () => {
-    const el = win.current;
-    if (!el) return;
-    const max = el.scrollWidth - el.clientWidth;
-    setProg({ p: max > 0 ? el.scrollLeft / max : 0, w: el.clientWidth / el.scrollWidth });
-  };
-  useEffect(() => { onScroll(); }, []);
-  const stop = (e: React.SyntheticEvent) => e.stopPropagation();
-  return (
-    <div className="pf-favslider" onPointerDown={stop} onPointerUp={stop} onTouchStart={stop} onTouchEnd={stop}>
-      <div className="pf-favwin" ref={win} onScroll={onScroll}>
-        {favs.map((v) => (
-          <div className="pf-fav" key={v.code}>
-            <div className="pf-fav-art">{v.img ? <Photo ratio={1} src={v.img} alt={v.name} /> : <Placeholder ratio={1} label={v.code} from={v.from} to={v.to} />}</div>
-            <div className="cap">{v.name}<small>{v.code}</small></div>
-          </div>
-        ))}
-      </div>
-      <div className="pf-favbar" aria-hidden="true">
-        <span className="pf-favbar__thumb" style={{ width: (prog.w * 100) + "%", left: (prog.p * (1 - prog.w) * 100) + "%" }} />
-      </div>
-    </div>
-  );
-}
-
 function MProfile() {
   const [i, setI] = useState(0);
   const [back, setBack] = useState(false);
@@ -176,7 +149,7 @@ function MProfile() {
                 </dl>
               )}
               {ff.chips && <div className="pf-chips">{ff.chips.map((c) => <span className="pf-chip" key={c}><span className="pf-chip__dot" />{c}</span>)}</div>}
-              {ff.favs && <MFavSlider favs={ff.favs} />}
+              {ff.favs && <FavStrip favs={ff.favs} />}
               {ff.quote && <div className="pf-quote">{ff.quote}</div>}
             </div>
           ))}
@@ -330,6 +303,7 @@ export function MEvents() {
                     <div className="mev__row"><dt>Venue · 会場</dt><dd><span className="jp">{e.venueJp}</span></dd></div>
                     {e.booth && <div className="mev__row"><dt>Booth · 配置</dt><dd><span className="booth">{e.booth}</span></dd></div>}
                     {e.note && <div className="mev__row"><dt>Notes · 頒布物</dt><dd><span className="jp">{e.note}</span></dd></div>}
+                    {e.helpers && <div className="mev__row mev__row--helper"><dt>Helper · 売り子さん</dt><dd><Helpers list={e.helpers} /></dd></div>}
                     {e.role && <div className="mev__row"><dt>Role · 参加形態</dt><dd><span className="jp">{e.role}</span></dd></div>}
                   </dl>
                 </div>

@@ -1,7 +1,7 @@
 import "../../fortune.css";
 import "../../../styles/crystal.css";
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { SharedFortune } from "@/components/fortune/Fortune";
 import { decodeFortune } from "@/lib/fortune-data";
 
@@ -20,6 +20,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function SharedFortunePage({ params }: Props) {
   const r = decodeFortune((await params).code);
-  if (!r) redirect("/fortune");
+  if (!r) notFound();
   return <SharedFortune res={r} />;
 }

@@ -48,7 +48,7 @@ const RANK_MSGS: Readonly<Record<string, readonly string[]>> = candidates.messag
 export const messagesFor = (rank: string) => RANK_MSGS[rank] ?? FALLBACK_MSGS;
 
 export const HASHTAG = "#今日の育成ウマ娘";
-/* Hashtags appended to the X post (the share card image shows only HASHTAG) */
+/* Hashtags appended to the X post, one per line (the share card image shows only HASHTAG) */
 export const SHARE_HASHTAGS = [HASHTAG, "#Todays_Trainable_Umamusume"];
 
 /* One reading per day per visitor; the training pick may be redrawn this many times that day */
@@ -149,7 +149,7 @@ export const sharePath = (res: FortuneResult) => `/fortune/r/${res.code}`;
 
 /* Whole post goes in `text` (no url/hashtags params) so the line breaks stay put */
 export function shareText(res: FortuneResult, url: string) {
-  return `今日の運勢は「${res.rank}」！\nラッキーアイテム：${res.item}\n育成ウマ娘：${res.uma}\nおすすめシナリオ：${res.scenario}\n\n${url}\n\n${SHARE_HASHTAGS.join(" ")}`;
+  return `今日の運勢は「${res.rank}」！\nラッキーアイテム：${res.item}\n育成ウマ娘：${res.uma}\nおすすめシナリオ：${res.scenario}\n\n${url}\n\n${SHARE_HASHTAGS.join("\n")}`;
 }
 
 export const intentUrl = (text: string) => "https://x.com/intent/post?text=" + encodeURIComponent(text);

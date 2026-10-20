@@ -501,6 +501,11 @@ body.locked { overflow: hidden; }
   text-transform: uppercase; color: var(--c-muted); }
 .ev__row dd { margin: 0; font-size: 15.5px; color: var(--c-ink); font-weight: 500; }
 .ev__row dd .jp { font-family: var(--font-jp); }
+/* "HELPER · 売り子さん" is the longest label: slightly tighter so it stays on one line in the 130px column */
+.ev__row--helper dt { letter-spacing: .1em; white-space: nowrap; }
+/* cards with the extra helper row: slightly tighter rows so every card keeps the same height */
+.ev__main--dense .ev__rows { padding-top: 25px; }
+.ev__main--dense .ev__row { padding: 9px 0; }
 .ev__row .booth { font-family: var(--font-mono); font-weight: 700; color: var(--c-deep);
   background: color-mix(in oklab, var(--c-primary) 12%, var(--c-white));
   border: 1px solid color-mix(in oklab, var(--c-primary) 26%, transparent);
@@ -623,21 +628,20 @@ body.locked { overflow: hidden; }
   .ev__ghost { display: none; }
 }
 
-.pf-favslider{margin-top:18px;touch-action:pan-y}
-.pf-favwin{overflow:hidden;margin:-6px;padding:6px}
-.pf-favtrack{display:flex;transition:transform calc(.5s / var(--motion)) cubic-bezier(.16,.84,.34,1)}
-.pf-favtrack .pf-fav{flex:0 0 calc(100% / 3);padding:0 7px}
-.pf-favnav{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:12px}
-.pf-favdots{display:flex;gap:6px}
-.pf-favdots .pf-favdot{width:7px;height:7px;border-radius:50%;background:var(--c-line);transition:width .3s,background .3s}
-.pf-favdots .pf-favdot.on{width:20px;border-radius:5px;background:var(--grad-tri)}
+/* favourites: a horizontal strip with a slide bar — components/shared/FavStrip.tsx.
+   Characters keep their 150px size (3.5 visible on a full-width deck, more on wider decks). */
+.pf-favslider{margin-top:16px}
+.pf-favwin{display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;
+  margin-top:-6px;padding:6px 0 4px;cursor:grab;user-select:none;-webkit-user-select:none}
+.pf-favwin:active{cursor:grabbing}
+.pf-favwin::-webkit-scrollbar{display:none}
+.pf-favwin .pf-fav{flex:0 0 min(150px, calc((100% - 42px) / 3.5));scroll-snap-align:start}
+/* the bar is a 20px-tall hit area; the visible 4px track and thumb sit in its middle */
+.pf-favbar{position:relative;height:20px;margin:4px 0 -11px;cursor:pointer} /* -11px: the profile deck keeps its height */
+.pf-favbar::before{content:"";position:absolute;left:0;right:0;top:8px;height:4px;border-radius:4px;background:var(--c-line)}
+.pf-favbar .pf-favbar__thumb{position:absolute;top:8px;height:4px;border-radius:4px;background:var(--grad-tri)}
 
 .prof__facet{position:relative}
-.pf-favslider{position:static;margin-top:16px}
-.pf-favnav--top{position:absolute;top:0;right:0;margin:0}
-.pf-favwin{margin:0 -7px;padding:0}
-.pf-favtrack .pf-fav{padding:0 7px}
-.pf-favtrack .pf-fav-art{max-width:150px;margin:0 auto}
 
 .prof__deck-body{grid-template-columns:minmax(0,1fr)}
 .prof__facet{min-width:0}

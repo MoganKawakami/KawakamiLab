@@ -182,12 +182,9 @@ export function FortuneApp() {
     if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 80, behavior: "smooth" });
   }, [n]);
 
-  const onShare = (e: React.MouseEvent) => {
-    if (!res) return;
-    e.preventDefault();
-    const text = shareText(res, window.location.origin + sharePath(res));
-    window.open(intentUrl(text), "_blank", "noopener,noreferrer");
-  };
+  /* The share button is a plain link to X's post screen; the text includes this result's URL.
+     A result only exists after mounting (it comes from this browser), so location is available. */
+  const shareHref = res ? intentUrl(shareText(res, window.location.origin + sharePath(res))) : undefined;
 
   const done = !!res;
   return (
@@ -204,7 +201,7 @@ export function FortuneApp() {
           pickNote={left > 0 ? `再抽選 残り${left}回` : "本日の再抽選は終了"}
           actions={
             <div className="factions">
-              <a className="fbtn2 fshare" href={sharePath(res)} onClick={onShare}><XMark />で共有</a>
+              <a className="fbtn2 fshare" href={shareHref} target="_blank" rel="noopener noreferrer"><XMark />で共有</a>
               <button className="fbtn2 fagain" onClick={reroll} disabled={rerolling || left <= 0}>
                 {rerolling ? "抽選中…" : <><span className="fbtn2__w">育成ウマ娘</span> <span className="fbtn2__w">再抽選</span></>}
               </button>

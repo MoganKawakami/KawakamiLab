@@ -26,6 +26,11 @@
 /* "Get in touch" uses the lighter sky gradient instead of the primary three-colour one */
 .btn--primary.btn--sky, .btn--primary.btn--sky:hover { background: var(--grad-sky); }
 
+/* event card: the booth helpers' names link to their X profiles */
+.ev-helper { color: var(--c-deep); font-weight: 600; text-decoration: underline; text-decoration-thickness: 1px;
+  text-underline-offset: 3px; text-decoration-color: color-mix(in oklab, var(--c-deep) 45%, transparent); }
+.ev-helper:hover { color: var(--c-primary); text-decoration-color: currentColor; }
+
 /* a real photo in the profile avatar: drop the placeholder's stripe overlay */
 .mprof__avatar.has-img::after, .prof__avatar.has-img::after { display: none; }
 

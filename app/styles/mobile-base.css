@@ -228,7 +228,9 @@ body.locked { overflow: hidden; }
 
 /* swipe deck */
 .mprof__deck { margin-top: 16px; position: relative; overflow: hidden; border-radius: 22px; border: 1px solid var(--c-line);
-  background: var(--c-white); box-shadow: 0 30px 70px -50px rgba(11,27,46,.5); touch-action: pan-y; }
+  background: var(--c-white); box-shadow: 0 30px 70px -50px rgba(11,27,46,.5);
+  /* pan-x too: touch-action is combined with ancestors, so pan-y alone stops the favourites strip scrolling */
+  touch-action: pan-x pan-y; }
 .mprof__deck::before { content: ""; position: absolute; right: -25%; top: -30%; width: 70%; height: 60%; z-index: 0; pointer-events: none;
   background: radial-gradient(circle, color-mix(in oklab, var(--c-secondary) 22%, transparent), transparent 65%); filter: blur(10px); opacity: calc(.6 * var(--grad-strength)); }
 .mprof__deck-head { position: relative; z-index: 2; display: flex; align-items: center; justify-content: space-between; padding: 20px 22px 0; }
@@ -434,7 +436,7 @@ body.locked { overflow: hidden; }
   .mhero__inner { max-width: 520px; }
 }
 
-.pf-favslider{margin-top:18px;touch-action:pan-y}
+.pf-favslider{margin-top:18px;touch-action:pan-x pan-y}
 .pf-favwin{overflow:hidden;margin:-6px;padding:6px}
 
 .mprof__facet{position:relative}

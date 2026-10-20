@@ -135,6 +135,6 @@ test("share text ends with both hashtags and stays within X's 280-character limi
   const longest = (list) => list.reduce((a, b, i) => (weight(b) > weight(list[a]) ? i : a), 0);
   const r = f.decodeFortune(`20261020-0-${longest(candidates.items)}-${longest(candidates.uma)}-${longest(candidates.scenarios)}-0`);
   const text = f.shareText(r, "https://example.com" + f.sharePath(r));
-  assert(text.endsWith("\n\n#今日の育成ウマ娘 #Todays_Trainable_Umamusume"));
+  assert(text.endsWith("\n\n#今日の育成ウマ娘\n#Todays_Trainable_Umamusume"));
   assert(weight(text) <= 280, String(weight(text)));
 });

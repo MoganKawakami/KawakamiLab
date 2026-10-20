@@ -146,19 +146,24 @@ export type PastEvent = {
   booth?: string;
   note?: string;
   role?: string;
+  /* people who helped at the booth, linked to their X profiles */
+  helpers?: readonly EventHelper[];
   photo?: string;
 };
+
+export type EventHelper = Readonly<{ name: string; x: string }>;
 
 /* oldest first — the last entry is the latest */
 export const PAST_EVENTS: readonly PastEvent[] = [
   { id: "cm106", name: "Comic Market 106", jp: "コミックマーケット106", iso: "2025-08-16", venueJp: "東京ビッグサイト", booth: "東7 か-18b",
-    note: "新刊『Future & Past』", photo: "/images/events/cm106.jpg" },
+    note: "新刊『Future & Past』", helpers: [{ name: "蠍", x: "https://x.com/popondapon_11" }], photo: "/images/events/cm106.jpg" },
   { id: "cm107", name: "Comic Market 107", jp: "コミックマーケット107", iso: "2025-12-30", venueJp: "東京ビッグサイト", booth: "東7 K-18b",
     note: "新刊『ちょ、タキオンさん！因子研究してください！ vol.1』", photo: "/images/events/cm107.jpg" },
   { id: "urc03", name: "URC03", jp: "", iso: "2026-06-28", venueJp: "東京流通センター(TRC) 第一展示場全ホール", booth: "7枠38番",
     photo: "/images/events/urc03.jpg" },
   { id: "cm108", name: "Comic Market 108", jp: "コミックマーケット108", iso: "2026-08-15", venueJp: "東京ビッグサイト", booth: "東3 フ-07b",
-    note: "新刊『ちょ、タキオンさん！因子研究してください！ vol.2』", photo: "/images/events/cm108.jpg" },
+    note: "新刊『ちょ、タキオンさん！因子研究してください！ vol.2』", helpers: [{ name: "まよ", x: "https://x.com/mayo7900" }],
+    photo: "/images/events/cm108.jpg" },
   { id: "spark21", name: "COMIC CITY SPARK 21", jp: "", iso: "2026-10-11", venueJp: "東京ビッグサイト",
     role: "売り子（お手伝い）として参加しました。", photo: "/images/events/spark21.jpg" },
 ];

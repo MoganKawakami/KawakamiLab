@@ -1,10 +1,12 @@
 /* sections.tsx — PC layout: Nav, Hero, Marquee, About, Publications, Events, Footer */
 import { useRef, useState } from "react";
-import { ICON, LINKS, MARQUEE_WORDS, PAST_EVENTS, PROFILE_FACETS, PUBLICATIONS, SOCIAL, STATS as COUNTS, type Fav } from "@/lib/data";
+import { ICON, LINKS, MARQUEE_WORDS, PAST_EVENTS, PROFILE_FACETS, PUBLICATIONS, SOCIAL, STATS as COUNTS } from "@/lib/data";
 import { MONTHS, WEEK, daysUntil } from "@/lib/event-date";
 import { swipeHandlers } from "@/lib/swipe";
 import { ChevronLeft, ChevronRight, Cover, FocusImg, Logo, Photo, Placeholder, ShapeNodes, ShapePlus, ShapeRing } from "@/components/shared/art";
 import { FortuneEntry } from "@/components/shared/Crystal";
+import { Helpers } from "@/components/shared/EventHelpers";
+import { FavStrip } from "@/components/shared/FavStrip";
 
 type Jump = (id: string) => void;
 
@@ -117,34 +119,6 @@ export function Marquee() {
 
 /* ---------------- PROFILE (circle owner, swipeable deck) ---------------- */
 
-/* Favourites: pages of three, switched by swipe/drag; dots indicate the current page. */
-function FavSlider({ favs }: { favs: readonly Fav[] }) {
-  const per = 3, pages = Math.ceil(favs.length / per);
-  const [pg, setPg] = useState(0);
-  const drag = useRef({ x: 0, a: false });
-  const go = (n: number) => setPg(Math.max(0, Math.min(pages - 1, n)));
-  const { onDown, onUp } = swipeHandlers(drag, 40, (d) => go(pg + d));
-  /* swipes here flip favourites, not the profile deck around them */
-  const down = (e: React.TouchEvent | React.PointerEvent) => { e.stopPropagation(); onDown(e); };
-  const up = (e: React.TouchEvent | React.PointerEvent) => { e.stopPropagation(); onUp(e); };
-  return (
-    <div className="pf-favslider" onPointerDown={down} onPointerUp={up} onTouchStart={down} onTouchEnd={up}>
-      <div className="pf-favwin">
-        <div className="pf-favtrack" style={{ transform: `translateX(-${pg * 100}%)` }}>
-          {favs.map((v) => (
-            <div className="pf-fav" key={v.code}>
-              <div className="pf-fav-art">{v.img ? <Photo ratio={1} src={v.img} alt={v.name} /> : <Placeholder ratio={1} label={v.code} from={v.from} to={v.to} />}</div>
-              <div className="cap">{v.name}<small>{v.code}</small></div>
-            </div>
-          ))}
-        </div>
-      </div>
-      <div className="pf-favnav pf-favnav--top">
-        <span className="pf-favdots" aria-hidden="true">{Array.from({ length: pages }).map((_, i) => <span key={i} className={"pf-favdot" + (i === pg ? " on" : "")} />)}</span>
-      </div>
-    </div>
-  );
-}
 function Profile() {
   const [i, setI] = useState(0);
   const [back, setBack] = useState(false);
@@ -199,7 +173,7 @@ function Profile() {
                 </dl>
               )}
               {ff.chips && <div className="pf-chips">{ff.chips.map((c) => <span className="pf-chip" key={c}><span className="pf-chip__dot" />{c}</span>)}</div>}
-              {ff.favs && <FavSlider favs={ff.favs} />}
+              {ff.favs && <FavStrip favs={ff.favs} />}
               {ff.quote && <div className="pf-quote">{ff.quote}</div>}
             </div>
           ))}
@@ -341,7 +315,7 @@ export function Events() {
 
             <div className="ev__mainstack">
               {PAST_EVENTS.map((e, i) => (
-                <div className={"ev__main" + (i === active ? " is-active" : "")} key={"m" + e.id} aria-hidden={i !== active}>
+                <div className={"ev__main" + (e.helpers ? " ev__main--dense" : "") + (i === active ? " is-active" : "")} key={"m" + e.id} aria-hidden={i !== active}>
                   <span className="ev__badge"><span className="pip" />{i === total - 1 ? "Latest · 直近の参加" : `Archive ${i + 1} / ${total}`}</span>
                   <h3 className="ev__name">{e.name}</h3>
                   {e.jp && <div className="ev__namejp">{e.jp}</div>}
@@ -349,6 +323,7 @@ export function Events() {
                     <div className="ev__row"><dt>Venue · 会場</dt><dd><span className="jp">{e.venueJp}</span></dd></div>
                     {e.booth && <div className="ev__row"><dt>Booth · 配置</dt><dd><span className="booth">{e.booth}</span></dd></div>}
                     {e.note && <div className="ev__row"><dt>Notes · 頒布物</dt><dd><span className="jp">{e.note}</span></dd></div>}
+                    {e.helpers && <div className="ev__row ev__row--helper"><dt>Helper · 売り子さん</dt><dd><Helpers list={e.helpers} /></dd></div>}
                     {e.role && <div className="ev__row"><dt>Role · 参加形態</dt><dd><span className="jp">{e.role}</span></dd></div>}
                   </dl>
                 </div>

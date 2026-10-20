@@ -1,8 +1,9 @@
-/* Share-card image for a fortune result — "Lavender Lab" design, matching the fortune page:
-   lavender graph paper, the crystal ball on a lit stage (left) and the result as an
-   "observed specimen" label (right).
-   next/og lays out with flexbox only; the crystal ball is an inline SVG so it can use
-   gradients, clipping and blur like the page's CSS ball. */
+/* Share-card image for a fortune result — design "A-refined-centered":
+   lavender graph paper; on the left the "Lab. Fortune" title with the circle credit, an
+   unofficial-fan-project label, the crystal ball and a disclaimer; on the right the result
+   card (rank with its English name, training pick, lucky item, scenario and the message).
+   next/og lays out with flexbox only, so every block is placed at the design's coordinates;
+   the crystal ball is an inline SVG so it can use gradients, clipping and blur. */
 import { ImageResponse } from "next/og";
 import { HASHTAG, decodeFortune } from "@/lib/fortune-data";
 
@@ -10,30 +11,69 @@ export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 export const alt = "Lab. Fortune — 今日の運勢";
 
-const C = { ink: "#1e1147", ink2: "#4b3f72", muted: "#6b5ca3", line: "#e2d9ff", violet: "#7c3aed", teal: "#0e7490" };
+const C = { ink: "#1e1147", muted: "#6b5ca3", violet: "#7c3aed", violetDeep: "#6d28d9", line: "#e2d9ff", rule: "#ddd0f8" };
+const FONT = "Noto Sans JP";
 
 /* Fetch just the glyphs we draw; Google serves TTF to non-browser clients */
-async function font(family: string, weight: number, text: string) {
+async function font(weight: number, text: string) {
   const css = await (await fetch(
-    `https://fonts.googleapis.com/css2?family=${family.replace(/ /g, "+")}:wght@${weight}&text=${encodeURIComponent(text)}`,
+    `https://fonts.googleapis.com/css2?family=${FONT.replace(/ /g, "+")}:wght@${weight}&text=${encodeURIComponent(text)}`,
   )).text();
   const src = /src: url\((.+?)\) format\('(opentype|truetype)'\)/.exec(css);
-  if (!src) throw new Error(`font not found: ${family} ${weight}`);
+  if (!src) throw new Error(`font not found: ${FONT} ${weight}`);
   return (await fetch(src[1])).arrayBuffer();
 }
 
-const rankSize = (rank: string) => (rank.length <= 1 ? 118 : rank.length === 2 ? 112 : 92);
-/* Training pick on one line: up to 58px, smaller for long names (~600px available) */
-const umaSize = (name: string) => Math.min(58, Math.floor(600 / name.length));
-/* English name above the Japanese one: up to 28px, smaller for long names (~600px, Latin ≈ .56em) */
-const enSize = (name: string) => Math.min(28, Math.floor(600 / (name.length * 0.56)));
-/* Item / scenario values get ~395px (Latin counts as about half a glyph). Keep them on one
-   line while that stays readable (24px+); otherwise wrap onto two lines */
-const valueSize = (text: string) => {
-  const units = [...text].reduce((n, c) => n + (c.charCodeAt(0) < 0x2000 ? 0.55 : 1), 0);
-  const oneLine = Math.floor(395 / units);
-  return oneLine >= 24 ? Math.min(30, oneLine) : Math.max(20, Math.min(30, Math.floor((395 * 1.8) / units)));
-};
+/* Rough rendered width in em: Latin and digits are about half a CJK glyph */
+const ems = (text: string) => [...text].reduce((n, c) => n + (c.charCodeAt(0) < 0x2000 ? 0.55 : 1), 0);
+/* Largest size up to `max` that keeps `text` on one line within `width` px */
+const fit = (text: string, max: number, width: number) => Math.min(max, Math.floor(width / ems(text)));
+
+/* The message box fits two lines of about 26 full-width characters. Break the message at a
+   phrase boundary as late as the first line allows: a sentence end (。！？) first, otherwise
+   a comma or a particle (が / を / に …) — never inside a word such as つなが|る. */
+const MSG_LINE = 26;
+const PARTICLES = "がをにはでともへ";
+const NO_START = "。、！？」）ぁぃぅぇぉっゃゅょー"; // never begins a line
+const VERB_TAIL = "らりるれろっ";               // after が/に etc. this is still the same word
+function messageLines(msg: string): string[] {
+  const chars = [...msg];
+  if (ems(msg) <= MSG_LINE) return [msg];
+  const latest = (good: (prev: string, next: string) => boolean) => {
+    for (let i = Math.min(MSG_LINE, chars.length - 1); i > 0; i--) {
+      if (!NO_START.includes(chars[i]) && chars.length - i <= MSG_LINE && good(chars[i - 1], chars[i])) return i;
+    }
+    return -1;
+  };
+  let at = latest((prev) => "。！？".includes(prev));
+  if (at < 0) at = latest((prev, next) => prev === "、" || (PARTICLES.includes(prev) && !PARTICLES.includes(next) && !VERB_TAIL.includes(next)));
+  return at < 0 ? [msg] : [chars.slice(0, at).join(""), chars.slice(at).join("")]; // no boundary: wrap where it must
+}
+
+/* Text whose baseline sits at y (as in the design), on one line */
+function T({ x, y, size: px, weight, color, children }: {
+  x: number; y: number; size: number; weight: number; color: string; children: React.ReactNode;
+}) {
+  return (
+    <div style={{ position: "absolute", left: x, top: y - px * 0.88, display: "flex", fontSize: px, fontWeight: weight, lineHeight: 1, color, whiteSpace: "nowrap" }}>
+      {children}
+    </div>
+  );
+}
+
+const Rule = ({ y }: { y: number }) => (
+  <div style={{ position: "absolute", left: 488, top: y - 1, width: 644, height: 0, borderTop: `2px dashed ${C.rule}` }} />
+);
+
+/* Item / scenario row between two rules: label and value centred vertically */
+function Row({ top, label, value }: { top: number; label: string; value: string }) {
+  return (
+    <div style={{ position: "absolute", left: 488, top, width: 644, height: 52, display: "flex", alignItems: "center" }}>
+      <div style={{ display: "flex", width: 195, fontSize: 16, fontWeight: 600, color: C.muted }}>{label}</div>
+      <div style={{ display: "flex", fontSize: fit(value, 25, 449), fontWeight: 600, color: C.ink, whiteSpace: "nowrap" }}>{value}</div>
+    </div>
+  );
+}
 
 /* The crystal ball (same layers as the page: deep glass, swirling mist, highlights,
    refraction rim, two tilted orbits, stand and cast light) */
@@ -96,116 +136,58 @@ function Ball() {
   );
 }
 
-function Mark() {
-  return (
-    <svg width="34" height="34" viewBox="0 0 48 48">
-      <defs>
-        <linearGradient id="k" x1="8" y1="6" x2="42" y2="44" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#38BDF8" /><stop offset=".5" stopColor="#22D3EE" /><stop offset="1" stopColor="#2563EB" />
-        </linearGradient>
-      </defs>
-      <g stroke="url(#k)" strokeWidth="3.4" strokeLinecap="round" fill="none">
-        <path d="M15 7V41" /><path d="M15 24 L34 8" /><path d="M15 24 L27 34 L34 40" />
-      </g>
-      <circle cx="15" cy="24" r="3.6" fill="#38BDF8" /><circle cx="34" cy="8" r="3.2" fill="#38BDF8" /><circle cx="34" cy="40" r="3.2" fill="#2563EB" />
-    </svg>
-  );
-}
-
-const tick = (color: string, border: string): React.CSSProperties => ({
-  position: "absolute", display: "flex", fontFamily: "Space Mono", fontSize: 15, letterSpacing: "0.16em", color,
-  background: "rgba(255,255,255,.9)", border: `2px solid ${border}`, borderRadius: 8, padding: "5px 10px",
-});
-
 export default async function Image({ params }: { params: Promise<{ code: string }> }) {
   const r = decodeFortune((await params).code);
   if (!r) return new Response("Invalid fortune code", { status: 400, headers: { "Cache-Control": "no-store" } });
 
-  const jp = "今日の運勢占い" + r.rank + r.uma + r.item + r.scenario + "育成ウマ娘ラッキーアイテムおすすめシナリオ" + HASHTAG;
-  const mono = "DAILY FORTUNE TRAINING PICK LAB. SPECIMEN READING OBSERVED · 0123456789.";
-  /* Zen Kaku Gothic New lacks a few symbols that appear in the lists (e.g. the full-width
-     tilde "～" in some scenario names). Noto Sans JP is loaded as a fallback for the same text,
-     so any glyph Zen Kaku doesn't have is drawn from it instead of as an empty box. */
-  const [jp700, jp900, fb700, fb900, grotesk, spaceMono] = await Promise.all([
-    font("Zen Kaku Gothic New", 700, jp),
-    font("Zen Kaku Gothic New", 900, jp),
-    font("Noto Sans JP", 700, jp),
-    font("Noto Sans JP", 900, jp),
-    font("Space Grotesk", 700, "KAWAKAMI Lab." + r.umaEn),
-    font("Space Mono", 400, mono),
-  ]);
-
-  const row = (dt: string, dd: string) => (
-    <div style={{ display: "flex", alignItems: "center", gap: 20, padding: "14px 0", borderTop: `2px dashed ${C.line}` }}>
-      <div style={{ display: "flex", width: 196, fontFamily: "Zen Kaku Gothic New", fontWeight: 700, fontSize: 16, letterSpacing: "0.1em", color: C.muted }}>{dt}</div>
-      <div style={{ display: "flex", flex: 1, fontFamily: "Zen Kaku Gothic New", fontWeight: 700, fontSize: valueSize(dd), lineHeight: 1.25, color: C.ink }}>{dd}</div>
-    </div>
-  );
+  const text = "Lab. Fortune制作：KAWAKAMI Lab.非公式ファン企画本企画は個人のファン活動です。作品の公式・運営元とは関係ありません。"
+    + HASHTAG + "DAILY FORTUNE · 今日の運勢0123456789.育成ウマ娘 · TRAINING PICKラッキーアイテムおすすめシナリオひとこと · MESSAGE"
+    + r.rank + r.rankEn + r.uma + r.umaEn + r.item + r.scenario + r.msg;
+  const [w400, w500, w600, w700, w800] = await Promise.all([400, 500, 600, 700, 800].map((w) => font(w, text)));
 
   return new ImageResponse(
     (
       <div style={{
-        width: 1200, height: 630, display: "flex", gap: 34, padding: "40px 44px 40px 40px", color: C.ink,
-        backgroundColor: "#f6f2ff",
-        backgroundImage: "radial-gradient(circle at 88% 6%, rgba(196,181,253,.55), rgba(196,181,253,0) 42%), radial-gradient(circle at 6% 60%, rgba(103,232,249,.28), rgba(103,232,249,0) 40%), linear-gradient(rgba(124,58,237,.07) 1px, transparent 1px), linear-gradient(90deg, rgba(124,58,237,.07) 1px, transparent 1px)",
-        backgroundSize: "1200px 630px, 1200px 630px, 28px 28px, 28px 28px",
+        width: 1200, height: 630, display: "flex", position: "relative", fontFamily: FONT, color: C.ink,
+        backgroundColor: "#f5f0ff",
+        backgroundImage: "linear-gradient(rgba(124,58,237,.07) 1px, transparent 1px), linear-gradient(90deg, rgba(124,58,237,.07) 1px, transparent 1px), linear-gradient(135deg, #fbf8ff, #eee7ff)",
+        backgroundSize: "28px 28px, 28px 28px, 1200px 630px",
       }}>
-        {/* left — brand, the crystal ball on its stage, hashtag */}
-        <div style={{ width: 400, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 12, fontFamily: "Space Grotesk", fontWeight: 700, fontSize: 28, color: C.ink }}>
-              <Mark />KAWAKAMI Lab.
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, fontFamily: "Space Mono", fontSize: 16, letterSpacing: "0.2em", color: C.violet }}>
-              <div style={{ width: 26, height: 2, background: C.violet, opacity: .6 }} />
-              LAB. FORTUNE ·<span style={{ fontFamily: "Zen Kaku Gothic New", fontWeight: 700, letterSpacing: "0.1em", marginLeft: 8 }}>占い</span>
-            </div>
-          </div>
-
-          <div style={{ position: "relative", width: 400, height: 330, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <div style={{ position: "absolute", left: 50, top: 15, width: 300, height: 300, borderRadius: 300, backgroundImage: "radial-gradient(circle, rgba(167,139,250,.38), rgba(167,139,250,0) 65%)" }} />
-            <div style={{ position: "absolute", left: 60, top: 25, width: 280, height: 280, borderRadius: 280, border: "2px dashed rgba(124,58,237,.3)" }} />
-            <div style={{ position: "absolute", left: 30, top: -5, width: 340, height: 340, borderRadius: 340, border: "2px solid rgba(124,58,237,.1)" }} />
-            <div style={{ display: "flex", marginTop: 14 }}><Ball /></div>
-            <div style={{ ...tick(C.violet, C.line), left: 0, top: 26 }}>SPECIMEN 07</div>
-            <div style={{ ...tick(C.teal, "#cffafe"), right: 0, bottom: -14 }}>READING · {r.date}</div>
-          </div>
-
-          <div style={{ display: "flex", fontFamily: "Zen Kaku Gothic New", fontWeight: 700, fontSize: 26, color: C.violet }}>{HASHTAG}</div>
-        </div>
-
-        {/* right — the result as an observed specimen label */}
+        {/* left — title, credit, unofficial label, crystal ball, disclaimer, hashtag */}
+        <T x={42} y={72} size={42} weight={700} color={C.ink}>Lab. Fortune</T>
+        <T x={42} y={105} size={20} weight={500} color={C.muted}>制作：KAWAKAMI Lab.</T>
         <div style={{
-          flex: 1, display: "flex", flexDirection: "column", borderRadius: 28, overflow: "hidden",
-          background: "rgba(255,255,255,.95)", border: `2px solid ${C.line}`, boxShadow: "0 30px 60px -36px rgba(76,29,149,.45)",
-        }}>
-          <div style={{ position: "relative", display: "flex", flexDirection: "column", padding: "22px 34px 14px", backgroundImage: "linear-gradient(120deg, #f5f0ff, #ecfeff)", borderBottom: "2px dashed #d9ccff" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", fontFamily: "Space Mono", fontSize: 16, letterSpacing: "0.16em", color: C.violet }}>
-              <span style={{ display: "flex" }}>DAILY FORTUNE ·<span style={{ fontFamily: "Zen Kaku Gothic New", fontWeight: 700, letterSpacing: "0.08em", marginLeft: 8 }}>今日の運勢</span></span>
-              <span style={{ color: C.muted }}>{r.date}</span>
-            </div>
-            <div style={{
-              display: "flex", marginTop: 8, fontFamily: "Zen Kaku Gothic New", fontWeight: 900, fontSize: rankSize(r.rank), lineHeight: 1, letterSpacing: "0.04em",
-              backgroundImage: "linear-gradient(120deg, #7c3aed, #4f46e5 50%, #0891b2)", backgroundClip: "text", color: "transparent", whiteSpace: "nowrap",
-            }}>{r.rank}</div>
-            <div style={{
-              position: "absolute", right: 30, bottom: 22, display: "flex", fontFamily: "Space Mono", fontSize: 15, letterSpacing: "0.16em", color: C.violet,
-              background: "#fff", border: "2px solid #c4b5fd", borderRadius: 8, padding: "6px 11px", transform: "rotate(-6deg)",
-            }}>OBSERVED</div>
-          </div>
+          position: "absolute", left: 42, top: 125, width: 196, height: 34, borderRadius: 17, display: "flex", alignItems: "center", justifyContent: "center",
+          background: "#ffffff", border: "1px solid #c9b7ee", fontSize: 20, fontWeight: 600, color: C.violetDeep,
+        }}>非公式ファン企画</div>
+        <div style={{ position: "absolute", left: 66, top: 162, width: 328, height: 328, borderRadius: 328, border: "1px solid #d8c9f9" }} />
+        <div style={{ position: "absolute", left: 93, top: 189, width: 274, height: 274, borderRadius: 274, border: "1px dashed #c8b5ef" }} />
+        <div style={{ position: "absolute", left: 105, top: 195, display: "flex" }}><Ball /></div>
+        <T x={42} y={519} size={16} weight={400} color={C.muted}>本企画は個人のファン活動です。</T>
+        <T x={42} y={545} size={16} weight={400} color={C.muted}>作品の公式・運営元とは関係ありません。</T>
+        <T x={63} y={581} size={26} weight={600} color={C.violet}>{HASHTAG}</T>
 
-          <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "16px 34px 22px" }}>
-            <div style={{ display: "flex", alignItems: "center", fontFamily: "Space Mono", fontSize: 15, letterSpacing: "0.14em", color: C.muted }}>
-              <span style={{ fontFamily: "Zen Kaku Gothic New", fontWeight: 700, letterSpacing: "0.08em", marginRight: 8 }}>育成ウマ娘</span>· TRAINING PICK
-            </div>
-            {r.umaEn && (
-              <div style={{ display: "flex", marginTop: 8, fontFamily: "Space Grotesk", fontWeight: 700, fontSize: enSize(r.umaEn), lineHeight: 1.15, letterSpacing: "0.02em", whiteSpace: "nowrap", color: C.violet }}>{r.umaEn}</div>
-            )}
-            <div style={{ display: "flex", marginTop: r.umaEn ? 2 : 6, fontFamily: "Zen Kaku Gothic New", fontWeight: 900, fontSize: umaSize(r.uma), lineHeight: 1.15, letterSpacing: "0.02em", whiteSpace: "nowrap", color: C.ink }}>{r.uma}</div>
-            <div style={{ display: "flex", flexDirection: "column", marginTop: "auto" }}>
-              {row("ラッキーアイテム", r.item)}
-              {row("おすすめシナリオ", r.scenario)}
-            </div>
+        {/* right — the result card */}
+        <div style={{ position: "absolute", left: 458, top: 36, width: 704, height: 558, borderRadius: 24, background: "#ffffff", border: `2px solid ${C.line}` }} />
+        <T x={488} y={75} size={16} weight={600} color={C.violet}>DAILY FORTUNE · 今日の運勢</T>
+        <T x={995} y={75} size={17} weight={600} color={C.muted}>{r.date}</T>
+        <T x={488} y={158} size={84} weight={800} color={C.violet}>{r.rank}</T>
+        <T x={491} y={189} size={24} weight={500} color={C.muted}>{r.rankEn}</T>
+        <Rule y={204} />
+        <T x={488} y={236} size={16} weight={600} color={C.muted}>育成ウマ娘 · TRAINING PICK</T>
+        {r.umaEn && <T x={488} y={268} size={fit(r.umaEn, 24, 644)} weight={600} color={C.violet}>{r.umaEn}</T>}
+        <T x={488} y={r.umaEn ? 317 : 300} size={fit(r.uma, 43, 644)} weight={800} color={C.ink}>{r.uma}</T>
+        <Rule y={343} />
+        <Row top={345} label="ラッキーアイテム" value={r.item} />
+        <Rule y={397} />
+        <Row top={399} label="おすすめシナリオ" value={r.scenario} />
+        <div style={{
+          position: "absolute", left: 482, top: 450, width: 656, height: 121, borderRadius: 14, display: "flex", flexDirection: "column",
+          padding: "15px 18px 0 19px", background: "#f4eeff", border: `2px solid ${C.line}`,
+        }}>
+          <div style={{ display: "flex", fontSize: 14, fontWeight: 600, lineHeight: 1, color: C.violet }}>ひとこと · MESSAGE</div>
+          <div style={{ display: "flex", flexDirection: "column", marginTop: 9, fontSize: 23, fontWeight: 600, lineHeight: 1.52, color: C.ink }}>
+            {messageLines(r.msg).map((line) => <div key={line} style={{ display: "flex" }}>{line}</div>)}
           </div>
         </div>
       </div>
@@ -213,12 +195,11 @@ export default async function Image({ params }: { params: Promise<{ code: string
     {
       ...size,
       fonts: [
-        { name: "Zen Kaku Gothic New", data: jp700, weight: 700, style: "normal" },
-        { name: "Zen Kaku Gothic New", data: jp900, weight: 900, style: "normal" },
-        { name: "Noto Sans JP", data: fb700, weight: 700, style: "normal" },
-        { name: "Noto Sans JP", data: fb900, weight: 900, style: "normal" },
-        { name: "Space Grotesk", data: grotesk, weight: 700, style: "normal" },
-        { name: "Space Mono", data: spaceMono, weight: 400, style: "normal" },
+        { name: FONT, data: w400, weight: 400, style: "normal" },
+        { name: FONT, data: w500, weight: 500, style: "normal" },
+        { name: FONT, data: w600, weight: 600, style: "normal" },
+        { name: FONT, data: w700, weight: 700, style: "normal" },
+        { name: FONT, data: w800, weight: 800, style: "normal" },
       ],
       /* a code always renders the same card */
       headers: { "Cache-Control": "public, max-age=31536000, immutable" },

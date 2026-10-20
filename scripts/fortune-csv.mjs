@@ -3,7 +3,8 @@
 //   character.csv / scenario.csv / item.csv — "name" column (character.csv may also have "name_en")
 //   <rank>.csv (大吉.csv, 凶.csv, …)            — "comment" column: one-line messages for that rank
 // Other columns are ignored.
-import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
+import { randomUUID } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
@@ -13,7 +14,7 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 function parseCsv(text) {
   const rows = [];
   let row = [], field = "", quoted = false;
-  text = text.replace(/^﻿/, "");
+  text = text.replace(/^\uFEFF/, "");
   for (let i = 0; i < text.length; i++) {
     const c = text[i];
     if (quoted) {
@@ -33,7 +34,7 @@ function parseCsv(text) {
 }
 
 function column(file, name) {
-  const [header, ...rows] = parseCsv(readFileSync(join(root, file), "utf8"));
+  const [header = [], ...rows] = parseCsv(readFileSync(join(root, file), "utf8"));
   const col = header.map((h) => h.trim()).indexOf(name);
   if (col < 0) throw new Error(`${file}: no "${name}" column in the header`);
   const list = rows.map((r) => (r[col] ?? "").trim()).filter(Boolean);
@@ -44,7 +45,7 @@ function column(file, name) {
 /* Characters: Japanese name plus the optional English name, kept row-aligned so the
    index used in share URLs points at the same character in both lists */
 function characters(file) {
-  const [header, ...rows] = parseCsv(readFileSync(join(root, file), "utf8"));
+  const [header = [], ...rows] = parseCsv(readFileSync(join(root, file), "utf8"));
   const cols = header.map((h) => h.trim());
   const ja = cols.indexOf("name"), en = cols.indexOf("name_en");
   if (ja < 0) throw new Error(`${file}: no "name" column in the header`);
@@ -85,6 +86,16 @@ if (process.argv.includes("--check")) {
   if (!existsSync(output) || readFileSync(output, "utf8") !== serialized) {
     throw new Error("Generated candidates are stale. Run npm run data:generate.");
   }
-} else writeFileSync(output, serialized);
+} else if (!existsSync(output) || readFileSync(output, "utf8") !== serialized) {
+  // Replace only after the complete file is written. A failed write must not
+  // truncate the current candidates and break previously shared URLs.
+  const temporary = `${output}.${randomUUID()}.tmp`;
+  try {
+    writeFileSync(temporary, serialized, { flag: "wx" });
+    renameSync(temporary, output);
+  } finally {
+    rmSync(temporary, { force: true });
+  }
+}
 console.log(`fortune candidates: ${out.uma.length} uma (${out.umaEn.filter(Boolean).length} with English names), ${out.scenarios.length} scenarios, ${out.items.length} items`);
 console.log(`fortune messages: ${Object.entries(messages).map(([k, v]) => `${k} ${v.length}`).join(", ")}`);

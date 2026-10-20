@@ -1,6 +1,6 @@
 /* data.ts — publications, profile facets and event archive (shared by the PC and phone layouts) */
 
-export type Publication = {
+export type Publication = Readonly<{
   id: string;
   title: string;
   jp: string;
@@ -21,14 +21,16 @@ export type Publication = {
   descLabel: string;
   desc: string;
   descJp: string;
-  previews: string[];
+  previews: readonly string[];
   /* cover artwork in public/, with the face position as fractions of the image */
   image?: Img;
   /* 試し読み pages, in the same order as previews: a small thumbnail and a readable full page */
-  pages?: { thumb: string; full: string }[];
-};
+  pages?: readonly PreviewPage[];
+}>;
 
-export type Img = { src: string; focus: [number, number] };
+export type PreviewPage = Readonly<{ thumb: string; full: string }>;
+
+export type Img = { src: string; focus: readonly [number, number] };
 
 const Q = "????";
 
@@ -41,7 +43,7 @@ function secret(id: string, ratio: number, from: string, to: string): Publicatio
   };
 }
 
-export const PUBLICATIONS: Publication[] = [
+export const PUBLICATIONS: readonly Publication[] = [
   {
     id: "futurepast", title: "Future & Past", jp: "", year: "2025", ratio: 1.42,
     type: "漫画", price: "¥500", priceJp: "頒布価格",
@@ -105,11 +107,11 @@ export type Facet = {
   jp: string;
   rows?: { dt: string; dd: string; jp?: boolean }[];
   chips?: string[];
-  favs?: Fav[];
+  favs?: readonly Fav[];
   quote?: string;
 };
 
-export const PROFILE_FACETS: Facet[] = [
+export const PROFILE_FACETS: readonly Facet[] = [
   { key: "basics", label: "Basics", jp: "基本情報", rows: [
     { dt: "年齢 / Age", dd: "20代前半", jp: true },
     { dt: "性別 / Gender", dd: "男性", jp: true },
@@ -148,7 +150,7 @@ export type PastEvent = {
 };
 
 /* oldest first — the last entry is the latest */
-export const PAST_EVENTS: PastEvent[] = [
+export const PAST_EVENTS: readonly PastEvent[] = [
   { id: "cm106", name: "Comic Market 106", jp: "コミックマーケット106", iso: "2025-08-16", venueJp: "東京ビッグサイト", booth: "東7 か-18b",
     note: "新刊『Future & Past』", photo: "/images/events/cm106.jpg" },
   { id: "cm107", name: "Comic Market 107", jp: "コミックマーケット107", iso: "2025-12-30", venueJp: "東京ビッグサイト", booth: "東7 K-18b",
@@ -164,3 +166,5 @@ export const PAST_EVENTS: PastEvent[] = [
 export const ICON = "/images/icon.jpg";
 
 export const STATS = { publications: "3", established: "2025", events: "4" };
+
+export const MARQUEE_WORDS = ["ANIME ILLUSTRATION", "ORIGINAL ARTWORK", "FAN ART", "CONCEPT DESIGN", "VISUAL RESEARCH", "DOUJIN PUBLISHING"] as const;

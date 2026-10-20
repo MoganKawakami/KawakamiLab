@@ -7,9 +7,9 @@ export function CrystalBall({ orbits = 1 }: { orbits?: 0 | 1 | 2 }) {
   return (
     <span className="cb" aria-hidden="true">
       <span className="cb__glass">
-        <i className="cb__mist" /><i className="cb__mist cb__mist--2" /><i className="cb__core" />
-        <i className="cb__sp cb__sp--a" /><i className="cb__sp cb__sp--b" /><i className="cb__sp cb__sp--c" />
-        <i className="cb__hl" /><i className="cb__rim" />
+        <span className="cb__mist" /><span className="cb__mist cb__mist--2" /><span className="cb__core" />
+        <span className="cb__sp cb__sp--a" /><span className="cb__sp cb__sp--b" /><span className="cb__sp cb__sp--c" />
+        <span className="cb__hl" /><span className="cb__rim" />
       </span>
       {orbits >= 1 && <span className="cb__orbit" />}
       {orbits >= 2 && <span className="cb__orbit cb__orbit--2" />}

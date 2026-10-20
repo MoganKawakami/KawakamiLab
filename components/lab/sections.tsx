@@ -1,8 +1,10 @@
 /* sections.tsx — phone-optimized sections */
 import { useEffect, useRef, useState } from "react";
-import { ICON, LINKS, PAST_EVENTS, PROFILE_FACETS, PUBLICATIONS, SOCIAL, STATS, type Fav } from "@/lib/data";
-import { ChevronLeft, ChevronRight, Cover, FocusImg, Logo, Photo, Placeholder, ShapePlus, ShapeRing, swipeHandlers } from "./art";
-import { FortuneEntry } from "./Crystal";
+import { ICON, LINKS, MARQUEE_WORDS, PAST_EVENTS, PROFILE_FACETS, PUBLICATIONS, SOCIAL, STATS, type Fav } from "@/lib/data";
+import { MONTHS, WEEK, daysUntil } from "@/lib/event-date";
+import { swipeHandlers } from "@/lib/swipe";
+import { ChevronLeft, ChevronRight, Cover, FocusImg, Logo, Photo, Placeholder, ShapePlus, ShapeRing } from "@/components/shared/art";
+import { FortuneEntry } from "@/components/shared/Crystal";
 
 type Jump = (id: string) => void;
 
@@ -57,8 +59,8 @@ export function MHero({ onJump }: { onJump: Jump }) {
         <div className="blob b1" /><div className="blob b2" /><div className="blob b3" />
       </div>
       <div className="mhero__grid" />
-      <div className="mshape bob" style={{ top: "13%", right: "6%" }}><ShapeRing size={66} /></div>
-      <div className="mshape spin" style={{ bottom: "20%", left: "7%" }}><ShapePlus size={40} /></div>
+      <div className="mshape mshape--1 bob"><ShapeRing size={66} /></div>
+      <div className="mshape mshape--2 spin"><ShapePlus size={40} /></div>
 
       <div className="m-container mhero__inner">
         <div className="eyebrow reveal in"><span>Anime Illustration Studio ·<br />創作研究所</span></div>
@@ -70,7 +72,7 @@ export function MHero({ onJump }: { onJump: Jump }) {
         <div className="mhero__card reveal in d3">
           <div className="cap"><span className="t">FIG.01 — FEATURED</span><span className="t r">2026</span></div>
           <div className="art"><Cover p={PUBLICATIONS[2]} ratio={1.25} big /></div>
-          <div className="cap"><span className="t" style={{ color: "var(--c-ink)", fontFamily: "var(--font-display)", fontSize: 13, letterSpacing: 0 }}>イラスト集&amp;短編集</span><span className="t">B5 · 16P</span></div>
+          <div className="cap"><span className="t t--title">イラスト集&amp;短編集</span><span className="t">B5 · 16P</span></div>
         </div>
 
         <div className="mhero__actions reveal in d4">
@@ -85,7 +87,6 @@ export function MHero({ onJump }: { onJump: Jump }) {
 }
 
 /* ---------------- MARQUEE ---------------- */
-const MARQUEE_WORDS = ["ANIME ILLUSTRATION", "ORIGINAL ARTWORK", "FAN ART", "CONCEPT DESIGN", "VISUAL RESEARCH", "DOUJIN PUBLISHING"];
 
 export function MMarquee() {
   const set = [...MARQUEE_WORDS, ...MARQUEE_WORDS];
@@ -99,7 +100,7 @@ export function MMarquee() {
 /* ---------------- PROFILE deck ---------------- */
 
 /* Favourites: horizontal scroll strip with a progress bar; swipes here don't flip the deck */
-function MFavSlider({ favs }: { favs: Fav[] }) {
+function MFavSlider({ favs }: { favs: readonly Fav[] }) {
   const win = useRef<HTMLDivElement>(null);
   const [prog, setProg] = useState({ p: 0, w: 1 });
   const onScroll = () => {
@@ -121,7 +122,7 @@ function MFavSlider({ favs }: { favs: Fav[] }) {
         ))}
       </div>
       <div className="pf-favbar" aria-hidden="true">
-        <i style={{ width: (prog.w * 100) + "%", left: (prog.p * (1 - prog.w) * 100) + "%" }} />
+        <span className="pf-favbar__thumb" style={{ width: (prog.w * 100) + "%", left: (prog.p * (1 - prog.w) * 100) + "%" }} />
       </div>
     </div>
   );
@@ -174,7 +175,7 @@ function MProfile() {
                   {ff.rows.map((r) => <div className="pf-row" key={r.dt}><dt>{r.dt}</dt><dd className={r.jp ? "jp" : ""}>{r.dd}</dd></div>)}
                 </dl>
               )}
-              {ff.chips && <div className="pf-chips">{ff.chips.map((c) => <span className="pf-chip" key={c}><i />{c}</span>)}</div>}
+              {ff.chips && <div className="pf-chips">{ff.chips.map((c) => <span className="pf-chip" key={c}><span className="pf-chip__dot" />{c}</span>)}</div>}
               {ff.favs && <MFavSlider favs={ff.favs} />}
               {ff.quote && <div className="pf-quote">{ff.quote}</div>}
             </div>
@@ -267,15 +268,6 @@ export function MPublications({ onOpen }: { onOpen: (i: number) => void }) {
 }
 
 /* ---------------- EVENTS ---------------- */
-const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
-const WEEK = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
-
-export function daysUntil(iso: string) {
-  const now = new Date();
-  const d = new Date(iso + "T00:00:00");
-  return Math.ceil((d.getTime() - new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime()) / 86400000);
-}
-
 export function MEvents() {
   const [active, setActive] = useState(0);
   const [dir, setDir] = useState(1);
@@ -296,7 +288,7 @@ export function MEvents() {
   const progress = total > 1 ? (active / (total - 1)) * 100 : 0;
 
   return (
-    <section className="m-section mabout" id="events" style={{ background: "var(--c-bg)" }}>
+    <section className="m-section mabout mevents" id="events">
       <div className="m-container">
         <div className="mpubs__head reveal">
           <div className="eyebrow">Events · 参加したイベント</div>
@@ -309,7 +301,7 @@ export function MEvents() {
           <div className="mev__rail">
             <button className="rbtn" aria-label="Previous event" disabled={active === 0} onClick={() => go(active - 1, -1)}><ChevronLeft /></button>
             <div className="mev__track">
-              <div className="mev__line"><i style={{ width: progress + "%" }} /></div>
+              <div className="mev__line"><span className="mev__line-fill" style={{ width: progress + "%" }} /></div>
               <div className="mev__node-row">
                 {PAST_EVENTS.map((e, i) => (
                   <button key={e.id} className={"mev__node" + (i === active ? " active" : "") + (i < active ? " past" : "")} onClick={() => go(i)} aria-label={e.name}>
@@ -369,7 +361,7 @@ export function MFooter({ onJump }: { onJump: Jump }) {
         <h2 className="mfooter__cta reveal">Let&apos;s make imagination visible together.
           <span className="jp">コラボレーション・寄稿・お問い合わせはお気軽に。</span>
         </h2>
-        <a className="btn btn--primary reveal d1" href={SOCIAL.x} target="_blank" rel="noopener noreferrer" style={{ background: "var(--grad-sky)" }}>
+        <a className="btn btn--primary btn--sky reveal d1" href={SOCIAL.x} target="_blank" rel="noopener noreferrer">
           Get in touch <span className="arrow">→</span>
         </a>
         <div className="mfooter__grid">

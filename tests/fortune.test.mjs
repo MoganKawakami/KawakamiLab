@@ -100,5 +100,41 @@ test("CSV generation rejects reorderings without overwriting the existing shared
     writeFileSync(csv, rows.join("\n").trimEnd() + "\n136,追加候補,Additional\n");
     assert.equal(run().status, 0);
     assert.equal(JSON.parse(readFileSync(output)).uma.length, 136);
+    const appended = readFileSync(output, "utf8");
+    for (const invalid of ["", 'name,name_en\n"unclosed']) {
+      writeFileSync(csv, invalid);
+      assert.notEqual(run().status, 0);
+      assert.equal(readFileSync(output, "utf8"), appended);
+    }
+    // Quoted commas, escaped quotes and BOM/CRLF must not alter existing indexes.
+    writeFileSync(csv, '\uFEFF' + rows.join("\n").trimEnd().replaceAll("\n", "\r\n") + '\r\n136,追加候補,Additional\r\n137,"追加,候補","Name ""Quoted"""\r\n');
+    assert.equal(run().status, 0);
+    const quoted = JSON.parse(readFileSync(output, "utf8"));
+    assert.equal(quoted.uma.at(-1), "追加,候補");
+    assert.equal(quoted.umaEn.at(-1), 'Name "Quoted"');
+    assert.equal(readdirSync(join(temp, "lib")).length, 1);
   } finally { rmSync(temp, { recursive: true, force: true }); }
+});
+
+test("all ranks expose English labels without changing shared codes", () => {
+  const labels = ["excellent luck", "moderately good luck", "a little good luck", "good luck", "good luck to come", "exceptional luck", "bad luck"];
+  for (let i = 0; i < labels.length; i++) {
+    const code = `20261020-${i}-0-0-0-0`;
+    const r = f.decodeFortune(code);
+    assert.equal(r.rankEn, labels[i]);
+    assert.equal(r.code, code);
+    assert.equal(f.rerollUma(r, [0], () => 0).rankEn, labels[i]);
+  }
+});
+
+test("share text ends with both hashtags and stays within X's 280-character limit", () => {
+  assert.deepEqual([...f.SHARE_HASHTAGS], ["#今日の育成ウマ娘", "#Todays_Trainable_Umamusume"]);
+  // X counts CJK as 2, any URL as 23
+  const weight = (text) => [...text.replace(/https?:\/\/\S+/g, "x".repeat(23))]
+    .reduce((n, c) => n + (c.codePointAt(0) > 0x10ff ? 2 : 1), 0);
+  const longest = (list) => list.reduce((a, b, i) => (weight(b) > weight(list[a]) ? i : a), 0);
+  const r = f.decodeFortune(`20261020-0-${longest(candidates.items)}-${longest(candidates.uma)}-${longest(candidates.scenarios)}-0`);
+  const text = f.shareText(r, "https://example.com" + f.sharePath(r));
+  assert(text.endsWith("\n\n#今日の育成ウマ娘 #Todays_Trainable_Umamusume"));
+  assert(weight(text) <= 280, String(weight(text)));
 });

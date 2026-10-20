@@ -10,18 +10,31 @@ import candidates from "./fortune-candidates.json";
 
 /* Index order is part of the share code: append only. 吉 is kept (weight 0) so links
    shared before the odds changed still resolve. */
-export const F_RANKS = ["大吉", "中吉", "小吉", "吉", "末吉", "大大吉", "凶"];
+export const F_RANKS = ["大吉", "中吉", "小吉", "吉", "末吉", "大大吉", "凶"] as const;
+export type FortuneRank = (typeof F_RANKS)[number];
+
+/* Display-only translations; shared URLs continue to use the unchanged rank indexes.
+   大大吉 uses our editorial translation, not a standardized fortune classification. */
+export const F_RANK_EN: Readonly<Record<FortuneRank, string>> = {
+  "大吉": "excellent luck",
+  "吉": "good luck",
+  "中吉": "moderately good luck",
+  "小吉": "a little good luck",
+  "末吉": "good luck to come",
+  "凶": "bad luck",
+  "大大吉": "exceptional luck",
+};
 
 /* Odds in percent; must add up to 100 */
-const RANK_WEIGHTS: Record<string, number> = {
+const RANK_WEIGHTS: Readonly<Record<FortuneRank, number>> = {
   "大大吉": 3, "大吉": 7, "中吉": 25, "小吉": 35, "末吉": 25, "凶": 5, "吉": 0,
 };
 
-export const F_ITEMS: string[] = candidates.items;
-export const F_UMA: string[] = candidates.uma;
+export const F_ITEMS: readonly string[] = candidates.items;
+export const F_UMA: readonly string[] = candidates.uma;
 /* English names, row-aligned with F_UMA ("" where the CSV has none) */
-export const F_UMA_EN: string[] = candidates.umaEn;
-export const F_SCENARIOS: string[] = candidates.scenarios;
+export const F_UMA_EN: readonly string[] = candidates.umaEn;
+export const F_SCENARIOS: readonly string[] = candidates.scenarios;
 /* Used for a rank that has no <rank>.csv */
 const FALLBACK_MSGS = [
   "描きたいものを、迷わず描ける一日。ラフは勢いを大切に。",
@@ -31,20 +44,21 @@ const FALLBACK_MSGS = [
   "休憩も制作のうち。少し歩くとアイデアがまとまります。",
 ];
 
-const RANK_MSGS: Record<string, string[]> = candidates.messages;
+const RANK_MSGS: Readonly<Record<string, readonly string[]>> = candidates.messages;
 export const messagesFor = (rank: string) => RANK_MSGS[rank] ?? FALLBACK_MSGS;
 
 export const HASHTAG = "#今日の育成ウマ娘";
 /* Hashtags appended to the X post (the share card image shows only HASHTAG) */
-export const SHARE_HASHTAGS = [HASHTAG, "#Today’s_Trainable_Umamusume"];
+export const SHARE_HASHTAGS = [HASHTAG, "#Todays_Trainable_Umamusume"];
 
 /* One reading per day per visitor; the training pick may be redrawn this many times that day */
 export const MAX_REROLLS = 5;
 
-export type FortuneResult = {
+export type FortuneResult = Readonly<{
   ymd: string;      // "20261019"
   date: string;     // "2026.10.19"
-  rank: string;
+  rank: FortuneRank;
+  rankEn: string;
   item: string;
   uma: string;
   umaEn: string;
@@ -52,7 +66,7 @@ export type FortuneResult = {
   scenario: string;
   msg: string;
   code: string;     // "{YYYYMMDD}-{rank}-{item}-{uma}-{scenario}-{msg}"
-};
+}>;
 
 type Ix = [rank: number, item: number, uma: number, scenario: number];
 
@@ -74,7 +88,7 @@ function build(ymd: string, ix: Ix, msg: number): FortuneResult {
   const rank = F_RANKS[ix[0]];
   return {
     ymd, date: dotted(ymd),
-    rank, item: F_ITEMS[ix[1]], uma: F_UMA[ix[2]], umaEn: F_UMA_EN[ix[2]] ?? "", umaIx: ix[2], scenario: F_SCENARIOS[ix[3]],
+    rank, rankEn: F_RANK_EN[rank], item: F_ITEMS[ix[1]], uma: F_UMA[ix[2]], umaEn: F_UMA_EN[ix[2]] ?? "", umaIx: ix[2], scenario: F_SCENARIOS[ix[3]],
     msg: messagesFor(rank)[msg],
     code: [ymd, ...ix, msg].join("-"),
   };
@@ -87,7 +101,7 @@ export function todayYmd(now = new Date()) {
 function pickRank(rand: () => number) {
   let roll = rand() * 100;
   for (let i = 0; i < F_RANKS.length; i++) {
-    roll -= RANK_WEIGHTS[F_RANKS[i]] ?? 0;
+    roll -= RANK_WEIGHTS[F_RANKS[i]];
     if (roll < 0) return i;
   }
   return F_RANKS.indexOf("小吉");
@@ -96,7 +110,7 @@ function pickRank(rand: () => number) {
 /* Every draw is independent: rank by the odds above, everything else — including the
    message from that rank's list — uniformly at random */
 export function drawFortune(rand: () => number = Math.random): FortuneResult {
-  const any = (list: unknown[]) => Math.floor(rand() * list.length);
+  const any = (list: readonly unknown[]) => Math.floor(rand() * list.length);
   const rank = pickRank(rand);
   return build(todayYmd(), [rank, any(F_ITEMS), any(F_UMA), any(F_SCENARIOS)], any(messagesFor(F_RANKS[rank])));
 }
@@ -122,7 +136,7 @@ export function decodeFortune(code: string): FortuneResult | null {
 /* Redraw only the training pick: same date, rank, item, scenario and message; the new pick is
    chosen uniformly from the characters not in `exclude` (everyone already shown today).
    Returns null when nobody is left. */
-export function rerollUma(res: FortuneResult, exclude: number[], rand: () => number = Math.random): FortuneResult | null {
+export function rerollUma(res: FortuneResult, exclude: readonly number[], rand: () => number = Math.random): FortuneResult | null {
   const [ymd, rank, item, , scenario, msg] = res.code.split("-");
   const taken = new Set(exclude);
   const pool = F_UMA.map((_, i) => i).filter((i) => !taken.has(i));

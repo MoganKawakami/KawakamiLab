@@ -1,42 +1,18 @@
 "use client";
 
 /* PcApp.tsx — root for the PC layout: parallax, reveals, scroll progress, gallery */
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect } from "react";
+import { scrollToSection, useBodyLock, useGallery, useScrollProgress, useSiteIntro } from "@/lib/use-site-effects";
 import { PUBLICATIONS } from "@/lib/data";
-import { Logo } from "../lab/art";
+import { Logo } from "@/components/shared/art";
 import { Experience } from "./Experience";
 import { About, Events, Footer, Hero, Marquee, Nav, Publications } from "./sections";
 
 export default function PcApp() {
-  const [loaded, setLoaded] = useState(false);
-  const [openIndex, setOpenIndex] = useState<number | null>(null);
-
-  /* loader */
-  useEffect(() => { const id = setTimeout(() => setLoaded(true), 1500); return () => clearTimeout(id); }, []);
-
-  /* reveals */
-  useEffect(() => {
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } });
-    }, { threshold: 0.16, rootMargin: "0px 0px -8% 0px" });
-    document.querySelectorAll(".reveal:not(.in)").forEach((el) => io.observe(el));
-    return () => io.disconnect();
-  }, [loaded]);
-
-  /* scroll progress + nav state */
-  useEffect(() => {
-    const bar = document.getElementById("progress");
-    const nav = document.getElementById("nav");
-    const onScroll = () => {
-      const h = document.documentElement.scrollHeight - window.innerHeight;
-      const p = h > 0 ? window.scrollY / h : 0;
-      if (bar) bar.style.transform = `scaleX(${p})`;
-      if (nav) nav.classList.toggle("scrolled", window.scrollY > 40);
-    };
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  const loaded = useSiteIntro({ delay: 1500, threshold: 0.16, rootMargin: "0px 0px -8% 0px" });
+  useScrollProgress("progress", "nav", 40);
+  const { openIndex, open, close, nav } = useGallery(PUBLICATIONS.length);
+  useBodyLock(openIndex != null);
 
   /* parallax (scroll + mouse) */
   useEffect(() => {
@@ -68,37 +44,14 @@ export default function PcApp() {
     };
   }, []);
 
-  /* smooth jump */
-  const jump = useCallback((id: string) => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    const y = el.getBoundingClientRect().top + window.scrollY - (id === "top" ? 0 : 72);
-    window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
-  }, []);
-
-  /* gallery */
-  const close = useCallback(() => setOpenIndex(null), []);
-  const nav = useCallback((dir: number) =>
-    setOpenIndex((i) => (i == null ? i : (i + dir + PUBLICATIONS.length) % PUBLICATIONS.length)), []);
-
-  useEffect(() => {
-    document.body.classList.toggle("locked", openIndex != null);
-    if (openIndex == null) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") close();
-      else if (e.key === "ArrowRight") nav(1);
-      else if (e.key === "ArrowLeft") nav(-1);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => { window.removeEventListener("keydown", onKey); document.body.classList.remove("locked"); };
-  }, [openIndex, close, nav]);
+  const jump = useCallback((id: string) => scrollToSection(id, 72), []);
 
   return (
     <>
       <div className={"loader" + (loaded ? " gone" : "")}>
         <div className="loader__inner">
           <div className="draw"><Logo size={64} stroke={2.6} /></div>
-          <div className="loader__bar"><i /></div>
+          <div className="loader__bar"><span /></div>
           <div className="loader__txt">Initializing Lab.</div>
         </div>
       </div>
@@ -110,7 +63,7 @@ export default function PcApp() {
         <Hero onJump={jump} />
         <Marquee />
         <About />
-        <Publications onOpen={setOpenIndex} />
+        <Publications onOpen={open} />
         <Events />
       </main>
       <Footer onJump={jump} />

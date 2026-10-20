@@ -3,6 +3,29 @@
 @media (max-width: 760px) { .only-pc { display: none; } }
 @media (min-width: 761px) { .only-mobile { display: none; } }
 
+/* ---------- artwork frames (components/shared/art.tsx); the aspect ratio and tint stay inline ---------- */
+.ph { position: relative; width: 100%; }
+.ph--placeholder { display: grid; place-items: center; overflow: hidden; }
+.ph__stripes { position: absolute; inset: 0; opacity: .5; mix-blend-mode: soft-light;
+  background-image: repeating-linear-gradient(135deg, rgba(255,255,255,.5) 0 1px, transparent 1px 11px); }
+.ph__sheen { position: absolute; inset: 0; background: radial-gradient(120% 90% at 80% 0%, rgba(255,255,255,.32), transparent 55%); }
+.ph__tick { position: absolute; inset: 12px; width: calc(100% - 24px); height: calc(100% - 24px); }
+.ph__label { position: relative; text-align: center; color: #fff; padding: 20px; }
+.ph__code { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .22em; text-transform: uppercase; opacity: .92; }
+.ph__sub { font-family: var(--font-jp); font-size: 13px; margin-top: 8px; opacity: .85; font-weight: 500; }
+.ph__hint { font-family: var(--font-mono); font-size: 9px; letter-spacing: .2em; margin-top: 12px; opacity: .6; text-transform: uppercase; }
+.ph--big .ph__code { font-size: 13px; }
+.ph--big .ph__sub { font-size: 18px; }
+.ph--photo { overflow: hidden; background: var(--c-line-soft); }
+.ph--page { background: #fff; }
+.ph--page > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+
+/* 試し読み thumbnails are links to the full page */
+.previews__grid a.thumb { display: block; cursor: zoom-in; }
+
+/* "Get in touch" uses the lighter sky gradient instead of the primary three-colour one */
+.btn--primary.btn--sky, .btn--primary.btn--sky:hover { background: var(--grad-sky); }
+
 /* a real photo in the profile avatar: drop the placeholder's stripe overlay */
 .mprof__avatar.has-img::after, .prof__avatar.has-img::after { display: none; }
 
@@ -34,9 +57,9 @@
 .pv__nav { flex: none; display: flex; align-items: center; justify-content: center; gap: 18px;
   padding: 12px var(--gutter, 20px) max(18px, env(safe-area-inset-bottom)); }
 .pv__dots { display: flex; gap: 6px; }
-.pv__dots i { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,.35); cursor: pointer;
+.pv__dots .pv__dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,.35); cursor: pointer;
   transition: width .3s, background .3s; }
-.pv__dots i.on { width: 20px; border-radius: 5px; background: var(--grad-tri); }
+.pv__dots .pv__dot.on { width: 20px; border-radius: 5px; background: var(--grad-tri); }
 
 /* PC: arrows sit at the sides of the page, vertically centred */
 @media (min-width: 761px) {

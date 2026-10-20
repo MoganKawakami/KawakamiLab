@@ -20,14 +20,17 @@ npm start
 ## 構成
 
 - `app/page.tsx`、`components/Site.tsx`：トップ。760px以下は`components/lab/`、761px以上は`components/pc/`。
+- `components/shared/`：PC・スマホ共通の部品（`art.tsx`の画像枠・ロゴ、`Crystal.tsx`の水晶球、`PageViewer.tsx`の試し読み）。
 - `lib/data.ts`：作品、プロフィール、イベント、SNS。PC・スマホ共通。
-- `components/lab/PageViewer.tsx`：作品詳細の上に開く試し読み。
-- `app/styles/desktop.css`：PC、`mobile-base.css`：共有モバイル基礎、`mobile.css`：画面幅による適用。
-- `app/globals.css`：画面切り替え、試し読み。`crystal.css`：共通の水晶球。
+- `lib/use-site-effects.ts`：ローディング・表示アニメーション・スクロール進捗・作品ビューア・背面スクロール固定。`use-dialog-focus.ts`：ダイアログ内のフォーカス管理。`swipe.ts`：スワイプ判定。
+- `app/styles/base.css`：全ページ共通の色・フォント・要素リセット（ルートレイアウトで読み込み）。
+- `app/styles/desktop.css`：PC、`mobile-base.css`：スマホ、`mobile.css`：`mobile-base.css`を760px以下に限定して読み込む。
+- `app/globals.css`：画面切り替え、画像枠、試し読み。`crystal.css`：共通の水晶球。
 - `app/fortune/`：占い・共有結果・OG画像。トップとはグローバルCSSが異なるため、ページ間は通常のリンクで移動。
 - `lib/fortune-data.ts`：抽選、共有コードの復元。`fortune-store.ts`：ブラウザ保存。
 - `public/images/`：配信用画像。`Images/`：Git対象外の元画像。画像加工の自動スクリプトは未整備。
-- `サークル用サイト-handoff.zip`：元デザイン資料。実行時には使用しない。
+
+同じCSSファイルを、あるページでは`@import … screen and (max-width: 760px)`、別のページでは条件なしで読み込まないこと。ビルド時に1つにまとめられ、どちらかの条件が失われる（PC表示にスマホ用CSSが効く等）。
 
 ## データ更新と共有URL互換性
 

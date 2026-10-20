@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import "./styles/base.css";
 
 /* absolute base for share-card URLs; Vercel provides the production domain */
 const site = process.env.SITE_URL

@@ -1,19 +1,15 @@
 /* sections.tsx — PC layout: Nav, Hero, Marquee, About, Publications, Events, Footer */
 import { useRef, useState } from "react";
-import { ICON, PAST_EVENTS, PROFILE_FACETS, PUBLICATIONS, SOCIAL, STATS as COUNTS, type Fav } from "@/lib/data";
-import { ChevronLeft, ChevronRight, Cover, FocusImg, Logo, Photo, Placeholder, ShapeNodes, ShapePlus, ShapeRing, swipeHandlers } from "../lab/art";
-import { FortuneEntry } from "../lab/Crystal";
-import { daysUntil } from "../lab/sections";
+import { ICON, LINKS, MARQUEE_WORDS, PAST_EVENTS, PROFILE_FACETS, PUBLICATIONS, SOCIAL, STATS as COUNTS, type Fav } from "@/lib/data";
+import { MONTHS, WEEK, daysUntil } from "@/lib/event-date";
+import { swipeHandlers } from "@/lib/swipe";
+import { ChevronLeft, ChevronRight, Cover, FocusImg, Logo, Photo, Placeholder, ShapeNodes, ShapePlus, ShapeRing } from "@/components/shared/art";
+import { FortuneEntry } from "@/components/shared/Crystal";
 
 type Jump = (id: string) => void;
 
 /* ---------------- NAV ---------------- */
-const NAV_LINKS = [
-  { en: "About", jp: "概要", id: "about" },
-  { en: "Profile", jp: "サークル主", id: "profile" },
-  { en: "Publications", jp: "刊行物", id: "publications" },
-  { en: "Events", jp: "参加イベント", id: "events" },
-];
+const NAV_LINKS = LINKS.filter((link) => link.id !== "contact");
 
 export function Nav({ onJump }: { onJump: Jump }) {
   return (
@@ -52,10 +48,10 @@ export function Hero({ onJump }: { onJump: Jump }) {
       <div className="hero__grid" data-par="0.02" />
 
       {/* floating lab shapes */}
-      <div className="shape" style={{ top: "16%", left: "6%" }} data-par="0.14"><div className="bob"><ShapeRing size={92} /></div></div>
-      <div className="shape" style={{ top: "62%", left: "11%" }} data-par="0.20"><div className="spin"><ShapePlus size={56} /></div></div>
-      <div className="shape" style={{ top: "24%", right: "8%" }} data-par="0.10"><div className="bob"><ShapeNodes size={120} /></div></div>
-      <div className="shape" style={{ bottom: "14%", right: "20%" }} data-par="0.24"><div className="spin-rev"><ShapePlus size={40} /></div></div>
+      <div className="shape shape--1" data-par="0.14"><div className="bob"><ShapeRing size={92} /></div></div>
+      <div className="shape shape--2" data-par="0.20"><div className="spin"><ShapePlus size={56} /></div></div>
+      <div className="shape shape--3" data-par="0.10"><div className="bob"><ShapeNodes size={120} /></div></div>
+      <div className="shape shape--4" data-par="0.24"><div className="spin-rev"><ShapePlus size={40} /></div></div>
 
       <div className="container hero__inner">
         <div className="hero__copy">
@@ -90,23 +86,18 @@ export function Hero({ onJump }: { onJump: Jump }) {
 /* floating glass specimen card in hero */
 function SpecimenCard() {
   return (
-    <div style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center" }}>
-      <div className="bob" style={{
-        position: "relative", width: 360, maxWidth: "100%",
-        borderRadius: 22, padding: 14, background: "rgba(255,255,255,.6)",
-        border: "1px solid var(--c-line)", backdropFilter: "blur(14px)",
-        boxShadow: "0 50px 100px -50px rgba(11,27,46,.55)",
-      }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "4px 6px 12px" }}>
-          <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: ".2em", color: "var(--c-muted)" }}>FIG.01 — FEATURED</span>
-          <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: ".2em", color: "var(--c-deep)" }}>2026</span>
+    <div className="specimen">
+      <div className="specimen__card bob">
+        <div className="specimen__cap">
+          <span className="specimen__k">FIG.01 — FEATURED</span>
+          <span className="specimen__k specimen__k--year">2026</span>
         </div>
-        <div style={{ borderRadius: 14, overflow: "hidden" }}>
+        <div className="specimen__art">
           <Cover p={PUBLICATIONS[2]} ratio={1.3} big />
         </div>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 6px 4px" }}>
-          <span style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 15 }}>イラスト集&amp;短編集</span>
-          <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--c-muted)" }}>B5 · 16P</span>
+        <div className="specimen__cap specimen__cap--foot">
+          <span className="specimen__title">イラスト集&amp;短編集</span>
+          <span className="specimen__meta">B5 · 16P</span>
         </div>
       </div>
     </div>
@@ -114,7 +105,6 @@ function SpecimenCard() {
 }
 
 /* ---------------- MARQUEE ---------------- */
-const MARQUEE_WORDS = ["ANIME ILLUSTRATION", "ORIGINAL ARTWORK", "FAN ART", "CONCEPT DESIGN", "VISUAL RESEARCH", "DOUJIN PUBLISHING"];
 
 export function Marquee() {
   const set = [...MARQUEE_WORDS, ...MARQUEE_WORDS];
@@ -128,21 +118,15 @@ export function Marquee() {
 /* ---------------- PROFILE (circle owner, swipeable deck) ---------------- */
 
 /* Favourites: pages of three, switched by swipe/drag; dots indicate the current page. */
-function FavSlider({ favs }: { favs: Fav[] }) {
+function FavSlider({ favs }: { favs: readonly Fav[] }) {
   const per = 3, pages = Math.ceil(favs.length / per);
   const [pg, setPg] = useState(0);
-  const sx = useRef<number | null>(null);
+  const drag = useRef({ x: 0, a: false });
   const go = (n: number) => setPg(Math.max(0, Math.min(pages - 1, n)));
-  const clientX = (e: React.TouchEvent | React.PointerEvent, end: boolean) =>
-    "touches" in e ? (end ? e.changedTouches[0].clientX : e.touches[0].clientX) : e.clientX;
-  const down = (e: React.TouchEvent | React.PointerEvent) => { e.stopPropagation(); sx.current = clientX(e, false); };
-  const up = (e: React.TouchEvent | React.PointerEvent) => {
-    e.stopPropagation();
-    if (sx.current == null) return;
-    const dx = clientX(e, true) - sx.current;
-    sx.current = null;
-    if (dx < -40) go(pg + 1); else if (dx > 40) go(pg - 1);
-  };
+  const { onDown, onUp } = swipeHandlers(drag, 40, (d) => go(pg + d));
+  /* swipes here flip favourites, not the profile deck around them */
+  const down = (e: React.TouchEvent | React.PointerEvent) => { e.stopPropagation(); onDown(e); };
+  const up = (e: React.TouchEvent | React.PointerEvent) => { e.stopPropagation(); onUp(e); };
   return (
     <div className="pf-favslider" onPointerDown={down} onPointerUp={up} onTouchStart={down} onTouchEnd={up}>
       <div className="pf-favwin">
@@ -156,7 +140,7 @@ function FavSlider({ favs }: { favs: Fav[] }) {
         </div>
       </div>
       <div className="pf-favnav pf-favnav--top">
-        <span className="pf-favdots" aria-hidden="true">{Array.from({ length: pages }).map((_, i) => <i key={i} className={i === pg ? "on" : ""} />)}</span>
+        <span className="pf-favdots" aria-hidden="true">{Array.from({ length: pages }).map((_, i) => <span key={i} className={"pf-favdot" + (i === pg ? " on" : "")} />)}</span>
       </div>
     </div>
   );
@@ -214,7 +198,7 @@ function Profile() {
                   {ff.rows.map((r) => <div className="pf-row" key={r.dt}><dt>{r.dt}</dt><dd className={r.jp ? "jp" : ""}>{r.dd}</dd></div>)}
                 </dl>
               )}
-              {ff.chips && <div className="pf-chips">{ff.chips.map((c) => <span className="pf-chip" key={c}><i />{c}</span>)}</div>}
+              {ff.chips && <div className="pf-chips">{ff.chips.map((c) => <span className="pf-chip" key={c}><span className="pf-chip__dot" />{c}</span>)}</div>}
               {ff.favs && <FavSlider favs={ff.favs} />}
               {ff.quote && <div className="pf-quote">{ff.quote}</div>}
             </div>
@@ -320,9 +304,6 @@ export function Publications({ onOpen }: { onOpen: (i: number) => void }) {
 }
 
 /* ---------------- EVENTS (past events, same archive as the phone layout) ---------------- */
-const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
-const WEEK = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
-
 export function Events() {
   const [active, setActive] = useState(0);
   const [dir, setDir] = useState(1);
@@ -391,7 +372,7 @@ export function Events() {
           <div className="ev__rail">
             <button className="ev__btn" aria-label="Previous event" disabled={active === 0} onClick={() => go(active - 1, -1)}><ChevronLeft /></button>
             <div className="ev__track">
-              <div className="ev__line"><i style={{ width: progress + "%" }} /></div>
+              <div className="ev__line"><span className="ev__line-fill" style={{ width: progress + "%" }} /></div>
               <div className="ev__node-row">
                 {PAST_EVENTS.map((e, i) => (
                   <button key={e.id}
@@ -426,17 +407,17 @@ export function Footer({ onJump }: { onJump: Jump }) {
           Let&apos;s make imagination<br />visible together.
           <span className="jp">コラボレーション・寄稿・お問い合わせはお気軽に。</span>
         </h2>
-        <a className="btn btn--primary reveal d1" href={SOCIAL.x} target="_blank" rel="noopener noreferrer" style={{ background: "var(--grad-sky)" }}>
+        <a className="btn btn--primary btn--sky reveal d1" href={SOCIAL.x} target="_blank" rel="noopener noreferrer">
           Get in touch <span className="arrow">→</span>
         </a>
 
         <div className="footer__grid">
           <div>
-            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+            <div className="footer__brand">
               <Logo size={30} mono />
-              <b style={{ fontFamily: "var(--font-display)", fontSize: 18 }}>KAWAKAMI Lab.</b>
+              <b>KAWAKAMI Lab.</b>
             </div>
-            <p style={{ color: "color-mix(in oklab, #fff 65%, transparent)", fontSize: 14, lineHeight: 1.7, maxWidth: "34ch", margin: 0 }}>
+            <p className="footer__about">
               Where imagination becomes visual art. A creative laboratory publishing anime illustration &amp; original artwork.
             </p>
           </div>

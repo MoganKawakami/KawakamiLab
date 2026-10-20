@@ -1,5 +1,17 @@
-/* Fortune page — the phone stylesheet's tokens and base styles, then the fortune styles */
-@import "../styles/mobile-base.css";
+/* Fortune page (phone + PC). Tokens and the element reset come from app/styles/base.css.
+   The phone stylesheet is deliberately not imported here: the home page loads it scoped to
+   ≤ 760px, and importing the same file unscoped from a second route makes the bundler emit
+   one shared copy, losing one of the two scopes. */
+:root { --gutter: 20px; --nav-h: 60px; }
+@media (min-width: 560px) { :root { --gutter: 32px; } }
+* { -webkit-tap-highlight-color: transparent; }
+html { -webkit-text-size-adjust: 100%; }
+.eyebrow {
+  font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.22em;
+  text-transform: uppercase; color: var(--c-deep);
+  display: inline-flex; align-items: center; gap: 9px;
+}
+.eyebrow::before { content: ""; width: 20px; height: 1px; background: currentColor; opacity: .6; }
 
 /* ============================================================
    Lab. Fortune — "Lavender Lab" (all-light) design

@@ -1,22 +1,20 @@
-import { useDialogFocus } from "@/lib/use-dialog-focus";
 /* PageViewer.tsx — full-screen 試し読み viewer: the tapped page large in the middle,
    arrows (and swipes on touch screens) to move between pages, Esc / backdrop to close.
    Opened from inside the publication viewer, so it sits above it and keeps its keys
    and swipes to itself (they would otherwise flip to another book). */
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import type { Publication } from "@/lib/data";
+import type { PreviewPage, Publication } from "@/lib/data";
+import { useDialogFocus } from "@/lib/use-dialog-focus";
 import { ChevronLeft, ChevronRight, PageImg, Placeholder } from "./art";
 
-export type Page = { thumb: string; full: string };
-
+/* Focus starts on the close button: useDialogFocus focuses the first control, which is it. */
 export function PageViewer({ pages, title, start, onClose }: {
-  pages: Page[]; title: string; start: number; onClose: () => void;
+  pages: readonly PreviewPage[]; title: string; start: number; onClose: () => void;
 }) {
   const dialog = useDialogFocus();
   const [i, setI] = useState(start);
   const [dir, setDir] = useState(0);
-  const closeBtn = useRef<HTMLButtonElement>(null);
   const touch = useRef<{ x: number; y: number } | null>(null);
   const total = pages.length;
 
@@ -39,8 +37,6 @@ export function PageViewer({ pages, title, start, onClose }: {
     window.addEventListener("keydown", onKey, true);
     return () => window.removeEventListener("keydown", onKey, true);
   });
-
-  useEffect(() => { closeBtn.current?.focus(); }, []);
 
   /* warm up the neighbours so arrows feel instant */
   useEffect(() => {
@@ -67,7 +63,7 @@ export function PageViewer({ pages, title, start, onClose }: {
          onClick={onClose} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd} onPointerDown={stop} onPointerUp={stop}>
       <header className="pv__bar" onClick={stop}>
         <span className="pv__count">PAGE {String(i + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}</span>
-        <button ref={closeBtn} className="pv__btn" aria-label="閉じる" onClick={onClose}>
+        <button className="pv__btn" aria-label="閉じる" onClick={onClose}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
         </button>
       </header>
@@ -81,7 +77,7 @@ export function PageViewer({ pages, title, start, onClose }: {
       <nav className="pv__nav" onClick={stop}>
         <button className="pv__btn pv__arrow pv__arrow--prev" aria-label="前のページ" disabled={i === 0} onClick={() => go(i - 1)}><ChevronLeft /></button>
         <span className="pv__dots" aria-hidden="true">
-          {pages.map((_, n) => <i key={n} className={n === i ? "on" : ""} onClick={() => go(n)} />)}
+          {pages.map((_, n) => <span key={n} className={"pv__dot" + (n === i ? " on" : "")} onClick={() => go(n)} />)}
         </span>
         <button className="pv__btn pv__arrow pv__arrow--next" aria-label="次のページ" disabled={i === total - 1} onClick={() => go(i + 1)}><ChevronRight /></button>
       </nav>
@@ -108,7 +104,7 @@ export function PreviewThumbs({ pub }: { pub: Publication }) {
         return page ? (
           <a className="thumb" key={i} href={page.full} ref={(el) => { thumbs.current[i] = el; }}
              onClick={(e) => { e.preventDefault(); setOpen(i); }}
-             aria-label={`${pub.title} 試し読み ${i + 1}ページ目を開く`} style={{ display: "block", cursor: "zoom-in" }}>
+             aria-label={`${pub.title} 試し読み ${i + 1}ページ目を開く`}>
             <PageImg src={page.thumb} alt={`${pub.title} 試し読み ${i + 1}`} />
           </a>
         ) : (

@@ -1,16 +1,16 @@
-import { useDialogFocus } from "@/lib/use-dialog-focus";
 /* MExperience.tsx — full-screen publication experience (phone) */
 import { useRef } from "react";
 import type { Publication } from "@/lib/data";
-import { ChevronLeft, ChevronRight, Cover, swipeHandlers } from "./art";
-import { PreviewThumbs } from "./PageViewer";
+import { swipeHandlers } from "@/lib/swipe";
+import { useDialogFocus } from "@/lib/use-dialog-focus";
+import { ChevronLeft, ChevronRight, Cover } from "@/components/shared/art";
+import { PreviewThumbs } from "@/components/shared/PageViewer";
 
 export function MExperience({ pub, index, total, onClose, onNav }: {
   pub: Publication; index: number; total: number; onClose: () => void; onNav: (dir: number) => void;
 }) {
   const drag = useRef({ x: 0, a: false });
   const { onDown, onUp } = swipeHandlers(drag, 50, onNav);
-
   const dialog = useDialogFocus();
 
   return (
@@ -41,9 +41,9 @@ export function MExperience({ pub, index, total, onClose, onNav }: {
             <h2>{pub.title}</h2>
             {pub.jp && <div className="jp">{pub.jp}</div>}
             <div className="desc">
-              {pub.descLabel && <span className="lab-tag" style={{ display: "block", marginBottom: 10 }}>{pub.descLabel}</span>}
-              <span className="jp" style={{ marginTop: 0, color: "var(--c-ink-2)", fontSize: 15 }}>{pub.descJp}</span>
-              <span style={{ display: "block", marginTop: 12, fontSize: 13.5, color: "var(--c-muted)", lineHeight: 1.75 }}>{pub.desc}</span>
+              {pub.descLabel && <span className="lab-tag">{pub.descLabel}</span>}
+              <span className="jp">{pub.descJp}</span>
+              <span className="en">{pub.desc}</span>
             </div>
             <dl className="spec">
               <div><dt>Released</dt><dd>{pub.date}</dd></div>

@@ -70,35 +70,18 @@ export function Placeholder({
   ratio = 1.4, label = "COVER", from = "var(--c-primary)", to = "var(--c-deep)", sub, big = false, hint = true,
 }: { ratio?: number; label?: string; from?: string; to?: string; sub?: string; big?: boolean; hint?: boolean }) {
   return (
-    <div className="ph" style={{
-      position: "relative", width: "100%", aspectRatio: String(1 / ratio),
-      background: `linear-gradient(135deg, ${from}, ${to})`,
-      display: "grid", placeItems: "center", overflow: "hidden",
-    }}>
-      <div style={{
-        position: "absolute", inset: 0, opacity: .5, mixBlendMode: "soft-light",
-        backgroundImage: "repeating-linear-gradient(135deg, rgba(255,255,255,.5) 0 1px, transparent 1px 11px)",
-      }} />
-      <div style={{
-        position: "absolute", inset: 0,
-        background: "radial-gradient(120% 90% at 80% 0%, rgba(255,255,255,.32), transparent 55%)",
-      }} />
+    <div className={"ph ph--placeholder" + (big ? " ph--big" : "")}
+      style={{ aspectRatio: String(1 / ratio), background: `linear-gradient(135deg, ${from}, ${to})` }}>
+      <div className="ph__stripes" />
+      <div className="ph__sheen" />
       {/* corner tick — lab specimen framing */}
-      <svg style={{ position: "absolute", inset: 12, width: "calc(100% - 24px)", height: "calc(100% - 24px)" }} fill="none">
+      <svg className="ph__tick" fill="none">
         <path d="M0 14V0h14" stroke="rgba(255,255,255,.6)" strokeWidth="1.4" />
       </svg>
-      <div style={{ position: "relative", textAlign: "center", color: "#fff", padding: 20 }}>
-        <div style={{
-          fontFamily: "var(--font-mono)", fontSize: big ? 13 : 10.5, letterSpacing: ".22em",
-          textTransform: "uppercase", opacity: .92,
-        }}>{label}</div>
-        {sub && <div style={{
-          fontFamily: "var(--font-jp)", fontSize: big ? 18 : 13, marginTop: 8, opacity: .85, fontWeight: 500,
-        }}>{sub}</div>}
-        {hint && <div style={{
-          fontFamily: "var(--font-mono)", fontSize: 9, letterSpacing: ".2em", marginTop: 12,
-          opacity: .6, textTransform: "uppercase",
-        }}>drop artwork here</div>}
+      <div className="ph__label">
+        <div className="ph__code">{label}</div>
+        {sub && <div className="ph__sub">{sub}</div>}
+        {hint && <div className="ph__hint">drop artwork here</div>}
       </div>
     </div>
   );
@@ -109,7 +92,7 @@ export function Placeholder({
    object-fit: cover; when the face sits too close to an edge to reach the centre that
    way, it zooms in up to maxZoom (1 = never zoom, e.g. book covers stay whole). */
 export function FocusImg({ src, alt, focus, maxZoom = 1 }: {
-  src: string; alt: string; focus: [number, number]; maxZoom?: number;
+  src: string; alt: string; focus: readonly [number, number]; maxZoom?: number;
 }) {
   const ref = useRef<HTMLImageElement>(null);
   const [box, setBox] = useState<React.CSSProperties | null>(null);
@@ -134,7 +117,7 @@ export function FocusImg({ src, alt, focus, maxZoom = 1 }: {
     const ro = new ResizeObserver(place);
     ro.observe(frame);
     return () => { img.removeEventListener("load", place); ro.disconnect(); };
-  }, [fx, fy, maxZoom]);
+  }, [src, fx, fy, maxZoom]);
 
   /* before measuring (and on the server) fall back to a plain cover crop toward the face */
   const style: React.CSSProperties = box
@@ -148,10 +131,10 @@ export function FocusImg({ src, alt, focus, maxZoom = 1 }: {
 
 /* Same frame as Placeholder (class "ph", aspect from ratio) but holding a photo */
 export function Photo({ ratio = 1.4, src, alt, focus = [0.5, 0.5], maxZoom }: {
-  ratio?: number; src: string; alt: string; focus?: [number, number]; maxZoom?: number;
+  ratio?: number; src: string; alt: string; focus?: readonly [number, number]; maxZoom?: number;
 }) {
   return (
-    <div className="ph" style={{ position: "relative", width: "100%", aspectRatio: String(1 / ratio), overflow: "hidden", background: "var(--c-line-soft)" }}>
+    <div className="ph ph--photo" style={{ aspectRatio: String(1 / ratio) }}>
       <FocusImg src={src} alt={alt} focus={focus} maxZoom={maxZoom} />
     </div>
   );
@@ -160,10 +143,9 @@ export function Photo({ ratio = 1.4, src, alt, focus = [0.5, 0.5], maxZoom }: {
 /* A whole page, never cropped (letterboxed if its shape differs from the frame) */
 export function PageImg({ ratio = 1.414, src, alt }: { ratio?: number; src: string; alt: string }) {
   return (
-    <div className="ph" style={{ position: "relative", width: "100%", aspectRatio: String(1 / ratio), background: "#fff" }}>
+    <div className="ph ph--page" style={{ aspectRatio: String(1 / ratio) }}>
       {/* eslint-disable-next-line @next/next/no-img-element -- images are pre-sized in public/images */}
-      <img src={src} alt={alt} loading="lazy" decoding="async" draggable={false}
-        style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "contain" }} />
+      <img src={src} alt={alt} loading="lazy" decoding="async" draggable={false} />
     </div>
   );
 }
@@ -186,24 +168,4 @@ export function ChevronLeft() {
 
 export function ChevronRight() {
   return <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>;
-}
-
-/* Horizontal swipe detector shared by the decks (touch + pointer). */
-type SwipeEvent = React.TouchEvent | React.PointerEvent;
-const clientX = (e: SwipeEvent, end: boolean) =>
-  "touches" in e ? (end ? e.changedTouches[0].clientX : e.touches[0].clientX) : e.clientX;
-
-export function swipeHandlers(
-  drag: React.RefObject<{ x: number; a: boolean }>,
-  threshold: number,
-  onSwipe: (dir: 1 | -1) => void,
-) {
-  const onDown = (e: SwipeEvent) => { drag.current = { x: clientX(e, false), a: true }; };
-  const onUp = (e: SwipeEvent) => {
-    if (!drag.current.a) return;
-    const dx = clientX(e, true) - drag.current.x;
-    drag.current.a = false;
-    if (dx < -threshold) onSwipe(1); else if (dx > threshold) onSwipe(-1);
-  };
-  return { onDown, onUp };
 }

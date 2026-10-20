@@ -8,7 +8,7 @@
     "prebuild": "node scripts/fortune-csv.mjs",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "data:generate": "node scripts/fortune-csv.mjs",
     "data:check": "node scripts/fortune-csv.mjs --check",

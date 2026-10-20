@@ -5,12 +5,12 @@ import { decodeFortune, todayYmd, type FortuneResult } from "./fortune-data";
 
 export const FORTUNE_STORAGE_KEY = "lab-fortune:v1";
 
-export type DayRecord = {
+export type DayRecord = Readonly<{
   ymd: string;        // the day this record belongs to
   code: string;       // current result (after any redraws)
   rerolls: number;    // training-pick redraws used today
-  shown: number[];    // every training pick shown today — never offered again until tomorrow
-};
+  shown: readonly number[];    // every training pick shown today — never offered again until tomorrow
+}>;
 
 /* Today's record and its decoded result, or null if there is none for today */
 export function loadToday(today = todayYmd()): { rec: DayRecord; res: FortuneResult } | null {
@@ -20,8 +20,8 @@ export function loadToday(today = todayYmd()): { rec: DayRecord; res: FortuneRes
     const res = decodeFortune(rec.code);
     if (!res || res.ymd !== today) return null;
     const rerolls = Number.isInteger(rec.rerolls) && rec.rerolls >= 0 ? rec.rerolls : 0;
-    const shown = Array.isArray(rec.shown) ? rec.shown.filter(Number.isInteger) : [];
-    if (!shown.includes(res.umaIx)) shown.push(res.umaIx);
+    const valid = Array.isArray(rec.shown) ? rec.shown.filter(Number.isInteger) : [];
+    const shown = valid.includes(res.umaIx) ? valid : [...valid, res.umaIx];
     return { rec: { ymd: today, code: rec.code, rerolls, shown }, res };
   } catch {
     return null;
@@ -30,10 +30,6 @@ export function loadToday(today = todayYmd()): { rec: DayRecord; res: FortuneRes
 
 export function saveToday(rec: DayRecord) {
   try { localStorage.setItem(FORTUNE_STORAGE_KEY, JSON.stringify(rec)); } catch { /* storage unavailable: today's state lives in memory only */ }
-}
-
-export function clearRecord() {
-  try { localStorage.removeItem(FORTUNE_STORAGE_KEY); } catch { /* ignore */ }
 }
 
 /* Milliseconds until the next local midnight */

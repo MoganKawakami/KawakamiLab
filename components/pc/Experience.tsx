@@ -1,8 +1,8 @@
-import { useDialogFocus } from "@/lib/use-dialog-focus";
 /* Experience.tsx — PC full-screen publication exhibition */
 import type { Publication } from "@/lib/data";
-import { ChevronLeft, ChevronRight, Cover, Logo } from "../lab/art";
-import { PreviewThumbs } from "../lab/PageViewer";
+import { useDialogFocus } from "@/lib/use-dialog-focus";
+import { ChevronLeft, ChevronRight, Cover, Logo } from "@/components/shared/art";
+import { PreviewThumbs } from "@/components/shared/PageViewer";
 
 export function Experience({ pub, index, total, onClose, onNav }: {
   pub: Publication; index: number; total: number; onClose: () => void; onNav: (dir: number) => void;
@@ -18,7 +18,7 @@ export function Experience({ pub, index, total, onClose, onNav }: {
 
       {/* top bar */}
       <header className="exp__bar">
-        <div className="exp__brand" style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <div className="exp__brand">
           <Logo size={26} />
           <span className="id">SPECIMEN {String(index + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}</span>
         </div>
@@ -43,15 +43,15 @@ export function Experience({ pub, index, total, onClose, onNav }: {
             <h2>{pub.title}</h2>
             {pub.jp && <div className="jp">{pub.jp}</div>}
             <div className="desc">
-              {pub.descLabel && <span className="lab-tag" style={{ display: "block", marginBottom: 12 }}>{pub.descLabel}</span>}
-              <span className="jp" style={{ marginTop: 0, color: "var(--c-ink-2)", fontSize: 16 }}>{pub.descJp}</span>
-              <span className="en" style={{ display: "block", marginTop: 14, fontSize: 14.5, color: "var(--c-muted)", lineHeight: 1.75 }}>{pub.desc}</span>
+              {pub.descLabel && <span className="lab-tag">{pub.descLabel}</span>}
+              <span className="jp">{pub.descJp}</span>
+              <span className="en">{pub.desc}</span>
             </div>
             <dl className="spec">
               <div><dt>Released</dt><dd>{pub.date}</dd></div>
               <div className="price-cell"><dt>{pub.priceJp} / Price</dt><dd>{pub.price}</dd></div>
               <div><dt>Distributed at</dt><dd>{pub.event}</dd></div>
-              <div><dt>Format</dt><dd style={{ whiteSpace: "pre-line" }}>{pub.format}</dd></div>
+              <div><dt>Format</dt><dd className="fmt">{pub.format}</dd></div>
             </dl>
             <div className="previews">
               <span className="lab-tag">Preview Plates — 試し読み</span>

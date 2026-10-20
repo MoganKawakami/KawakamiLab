@@ -1,78 +1,28 @@
 "use client";
 
 /* MApp.tsx — root for the phone-optimized site */
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
+import { scrollToSection, useBodyLock, useGallery, useScrollProgress, useSiteIntro } from "@/lib/use-site-effects";
 import { PUBLICATIONS } from "@/lib/data";
-import { Logo } from "./art";
+import { Logo } from "@/components/shared/art";
 import { MExperience } from "./MExperience";
 import { MAbout, MEvents, MFooter, MHero, MMarquee, MNav, MPublications } from "./sections";
 
 export default function MApp() {
-  const [loaded, setLoaded] = useState(false);
+  const loaded = useSiteIntro({ delay: 1400, threshold: 0.14, rootMargin: "0px 0px -6% 0px" });
+  useScrollProgress("mprogress", "mnav", 30);
   const [menu, setMenu] = useState(false);
-  const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const { openIndex, open, close, nav } = useGallery(PUBLICATIONS.length);
+  useBodyLock(menu || openIndex != null);
 
-  /* loader */
-  useEffect(() => { const id = setTimeout(() => setLoaded(true), 1400); return () => clearTimeout(id); }, []);
-
-  /* reveals */
-  useEffect(() => {
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } });
-    }, { threshold: 0.14, rootMargin: "0px 0px -6% 0px" });
-    document.querySelectorAll(".reveal:not(.in)").forEach((el) => io.observe(el));
-    return () => io.disconnect();
-  }, [loaded]);
-
-  /* scroll progress + nav state */
-  useEffect(() => {
-    const bar = document.getElementById("mprogress");
-    const nav = document.getElementById("mnav");
-    const onScroll = () => {
-      const h = document.documentElement.scrollHeight - window.innerHeight;
-      const p = h > 0 ? window.scrollY / h : 0;
-      if (bar) bar.style.transform = `scaleX(${p})`;
-      if (nav) nav.classList.toggle("scrolled", window.scrollY > 30);
-    };
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
-  /* lock body when menu or gallery open */
-  useEffect(() => {
-    document.body.classList.toggle("locked", menu || openIndex != null);
-    return () => document.body.classList.remove("locked");
-  }, [menu, openIndex]);
-
-  const jump = useCallback((id: string) => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    const y = el.getBoundingClientRect().top + window.scrollY - (id === "top" ? 0 : 56);
-    window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
-  }, []);
-
-  const close = useCallback(() => setOpenIndex(null), []);
-  const nav = useCallback((dir: number) =>
-    setOpenIndex((i) => (i == null ? i : (i + dir + PUBLICATIONS.length) % PUBLICATIONS.length)), []);
-
-  useEffect(() => {
-    if (openIndex == null) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") close();
-      else if (e.key === "ArrowRight") nav(1);
-      else if (e.key === "ArrowLeft") nav(-1);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [openIndex, close, nav]);
+  const jump = useCallback((id: string) => scrollToSection(id, 56), []);
 
   return (
     <>
       <div className={"loader" + (loaded ? " gone" : "")}>
         <div className="loader__inner">
           <div className="draw"><Logo size={56} stroke={2.6} /></div>
-          <div className="loader__bar"><i /></div>
+          <div className="loader__bar"><span /></div>
           <div className="loader__txt">Initializing Lab.</div>
         </div>
       </div>
@@ -84,7 +34,7 @@ export default function MApp() {
         <MHero onJump={jump} />
         <MMarquee />
         <MAbout />
-        <MPublications onOpen={setOpenIndex} />
+        <MPublications onOpen={open} />
         <MEvents />
       </main>
       <MFooter onJump={jump} />
